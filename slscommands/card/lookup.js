@@ -41,7 +41,7 @@ module.exports = {
     const cardOwner = lookup.owner ? `<@${lookup.owner}>` : "N/A";
 
     // Ensure date is parsed correctly
-    let createdDate = new Date(lookup.created);
+    let createdDate = new Date(lookup.date);
     let createdTimestamp = "N/A";
     if (!isNaN(createdDate.getTime())) {
       createdTimestamp = Math.floor(createdDate.getTime() / 1000);
