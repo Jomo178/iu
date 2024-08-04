@@ -5,14 +5,9 @@ module.exports = {
   name: "lookup",
   category: "card",
   description: "Lookup for any card from the Uaenaverse",
-  options: [
-    {
-      name: "code",
-      type: 3,
-      description: "Code of the card you would like to lookup.",
-      required: true,
-    },
-  ],
+    options: [
+        { name: 'code', type: 3, description: 'Card code you want to search up', required: true }
+    ],
   /**
    *
    * @param {Client} client
