@@ -1,0 +1,20 @@
+{
+    "name": "iu_bot",
+    "version": "1.0.0",
+    "description": "",
+    "main": "iu.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@discordjs/builders": "^1.8.2",
+        "@discordjs/rest": "^2.3.0",
+        "ascii-table": "^0.0.9",
+        "discord-api-types": "^0.37.93",
+        "discord.js": "^14.15.3",
+        "mongoose": "^8.5.2",
+        "nodemon": "^3.1.4"
+    }
+}
