@@ -1,59 +1,110 @@
-const { EmbedBuilder } = require("discord.js");
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ModalBuilder, TextInputBuilder, InteractionCollector } = require("discord.js");
 const issueBase = require("../../models/issue.js");
 
 module.exports = {
     name: 'issuecard',
+    category: 'dev',
     description: 'Add a new card issue to the database',
-    options: [
-        { name: 'name', type: 3, description: 'Name of the person', required: true },
-        { name: 'group', type: 3, description: 'Group of the idol', required: true },
-        { name: 'rarity', type: 3, description: 'Rarity of the card', required: true },
-        { name: 'act', type: 3, description: 'Act of the idol', required: true },
-        { name: 'image', type: 3, description: 'URL for the card', required: true }
-    ],
-    run: async (client, interaction) => {
+    options: [],
+    deferBypass: true,  
+    run: async (client, interaction, args) => {
+        let issueCardModal = new ModalBuilder()
+            .setCustomId('issuecard_modal')
+            .setTitle('Issue a New Card');
 
-        const username = interaction.user.username;
+        let nameInput = new TextInputBuilder()
+            .setCustomId('name')
+            .setLabel('Name of the person')
+            .setStyle(1)
+            .setRequired(true);
 
-        function generateCardCode(name, group, rarity, username) {
-            const firstLetter = name.charAt(0).toUpperCase();
-            const lastLetter = name.charAt(name.length - 1).toUpperCase();
-            const firstTwoGroupChars = group.substring(0, 2).toUpperCase();
-            const userFirstLetter = username.charAt(0).toUpperCase();
-            const rarityCode = rarity.toUpperCase();
-        
-            return `${firstLetter}${lastLetter}${firstTwoGroupChars}${userFirstLetter}${rarityCode}`;
-        }
-                
-        const name = interaction.options.getString('name');
-        const group = interaction.options.getString('group');
-        const rarity = interaction.options.getString('rarity');
-        const act = interaction.options.getString('act');
-        const image = interaction.options.getString('image');
-        const code = generateCardCode(name, group, rarity, username);
+        let groupInput = new TextInputBuilder()
+            .setCustomId('group')
+            .setLabel('Group of the idol')
+            .setStyle(1)
+            .setRequired(true);
 
-        const newIssue = new issueBase({
-            name,
-            group,
-            rarity,
-            act,
-            code,
-            image
+        let rarityInput = new TextInputBuilder()
+            .setCustomId('rarity')
+            .setLabel('Rarity of the card')
+            .setStyle(1)
+            .setRequired(true);
+
+        let actInput = new TextInputBuilder()
+            .setCustomId('act')
+            .setLabel('Act of the idol')
+            .setStyle(1)
+            .setRequired(true);
+
+        let imageInput = new TextInputBuilder()
+            .setCustomId('image')
+            .setLabel('URL for the card')
+            .setStyle(1)
+            .setRequired(true);
+
+        issueCardModal.addComponents(
+            new ActionRowBuilder().addComponents(nameInput),
+            new ActionRowBuilder().addComponents(groupInput),
+            new ActionRowBuilder().addComponents(rarityInput),
+            new ActionRowBuilder().addComponents(actInput),
+            new ActionRowBuilder().addComponents(imageInput)
+        );
+
+        await interaction.showModal(issueCardModal);
+
+        const filter = (i) => i.customId === 'issuecard_modal' && i.user.id === interaction.user.id;
+        const collector = new InteractionCollector(client, { filter, time: 120000 });
+
+        collector.on('collect', async (i) => {
+            if (i.customId === 'issuecard_modal') {
+                const name = i.fields.getTextInputValue('name');
+                const group = i.fields.getTextInputValue('group');
+                const rarity = i.fields.getTextInputValue('rarity');
+                const act = i.fields.getTextInputValue('act');
+                const image = i.fields.getTextInputValue('image');
+                const code = generateCardCode(name, group, rarity, interaction.user.username);
+
+                const newIssue = new issueBase({
+                    name,
+                    group,
+                    rarity,
+                    act,
+                    code,
+                    image
+                });
+                await newIssue.save();
+
+                const embed = new EmbedBuilder()
+                    .setTitle('New Card Issue Added')
+                    .setDescription(`
+                        **Name:** ${name}
+                        **Group:** ${group}
+                        **Rarity:** ${rarity}
+                        **Act:** ${act}
+                        **Code:** ${code}
+                    `)
+                    .setThumbnail(image)
+                    .setColor('#303135');
+
+                await i.reply({ embeds: [embed] });
+
+                const channel = client.channels.cache.get('1270037664724291584');
+                if (channel) {
+                    await channel.send({ embeds: [embed] });
+                } else {
+                    console.error('Channel not found');
+                }
+            }
         });
-        await newIssue.save();
-
-        const embed = new EmbedBuilder()
-            .setTitle('New Card Issue Added')
-            .setDescription(`
-                **Name:** ${name}
-                **Group:** ${group}
-                **Rarity:** ${rarity}
-                **Act:** ${act}
-                **Code:** ${code}
-            `)
-            .setThumbnail(image)
-            .setColor('#303135');
-
-        await interaction.followUp({ embeds: [embed] });
     }
+};
+
+function generateCardCode(name, group, rarity, username) {
+    const firstLetter = name.charAt(0).toUpperCase();
+    const lastLetter = name.charAt(name.length - 1).toUpperCase();
+    const firstTwoGroupChars = group.substring(0, 2).toUpperCase();
+    const userFirstLetter = username.charAt(0).toUpperCase();
+    const rarityCode = rarity.toUpperCase();
+
+    return `${firstLetter}${lastLetter}${firstTwoGroupChars}${userFirstLetter}${rarityCode}`;
 }

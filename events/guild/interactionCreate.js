@@ -9,15 +9,16 @@ module.exports = async (client, interaction) => {
     }
 
     if (interaction.type === InteractionType.ApplicationCommand) {
-        await interaction.deferReply({ ephemeral: false }).catch(() => { });
-
         const cmd = client.slashCommands.get(interaction.commandName);
         if (!cmd) return interaction.followUp({ content: "An error has occurred." });
+
+        if (!cmd.deferBypass) {
+            await interaction.deferReply({ ephemeral: false }).catch(() => { });
+        }
 
         const userInfo = await userBase.findOne({ user: interaction.user.id });
 
         if (!userInfo) {
-            // User does not exist in the database, send the embed and add the user to the database
             let embed = new EmbedBuilder()
                 .setTitle('👋 Welcome to the Uaenaverse Industry')
                 .setDescription(`Here begins your journey. Before starting, please read the terms below.
@@ -67,4 +68,4 @@ module.exports = async (client, interaction) => {
 
         cmd.run(client, interaction, args);
     }
-};
+}
