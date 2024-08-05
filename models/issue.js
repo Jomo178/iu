@@ -11,4 +11,4 @@ const Schema = mongoose.Schema({
   owner: String,
 });
 
-module.exports = mongoose.model("cards", Schema);
+module.exports = mongoose.model("issues", Schema);
