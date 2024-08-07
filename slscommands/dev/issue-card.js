@@ -1,4 +1,4 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ModalBuilder, TextInputBuilder, InteractionCollector } = require("discord.js");
+const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, InteractionCollector } = require("discord.js");
 const issueBase = require("../../models/issue.js");
 
 module.exports = {
@@ -64,6 +64,16 @@ module.exports = {
                 const image = i.fields.getTextInputValue('image');
                 const code = generateCardCode(name, group, rarity, interaction.user.username);
 
+                const existingIssue = await issueBase.findOne({ code });
+                if (existingIssue) {
+                    if (!i.replied && !i.deferred) {
+                        return i.reply({ content: `This code already exists: ${code}`, ephemeral: true });
+                    } else {
+                        console.error('Interaction already replied or deferred');
+                        return;
+                    }
+                }
+
                 const newIssue = new issueBase({
                     name,
                     group,
@@ -86,7 +96,9 @@ module.exports = {
                     .setThumbnail(image)
                     .setColor('#303135');
 
-                await i.reply({ embeds: [embed] });
+                if (!i.replied && !i.deferred) {
+                    await i.reply({ embeds: [embed], ephemeral: true });
+                }
 
                 const channel = client.channels.cache.get('1270037664724291584');
                 if (channel) {
