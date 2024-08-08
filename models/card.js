@@ -10,7 +10,7 @@ const Schema = mongoose.Schema({
   image: String,
   owner: String,
   date: String,
-  issue: Date,
+  issue: Number,
 });
 
 module.exports = mongoose.model("cards", Schema);

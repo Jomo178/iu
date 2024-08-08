@@ -22,7 +22,7 @@ async function drawRandomCards(count) {
 // Function to get the next issue number for a card
 async function getNextIssueNumber(cardName) {
   const cards = await Card.find({ name: cardName });
-  const issueNumbers = cards.map(card => card.issueNumber).sort((a, b) => a - b);
+  const issueNumbers = cards.map(card => card.issue).sort((a, b) => a - b);
   return (issueNumbers.pop() || 0) + 1;
 }
 
