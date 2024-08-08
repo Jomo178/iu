@@ -5,10 +5,8 @@ const Schema = mongoose.Schema({
   act: String,
   group: String,
   rarity: String,
-  act: String,
   code: String,
   image: String,
-  owner: String,
 });
 
-module.exports = mongoose.model("issues", Schema);
+module.exports = mongoose.model("issue", Schema);
