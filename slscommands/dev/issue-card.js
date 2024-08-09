@@ -118,7 +118,6 @@ module.exports = {
                         console.error('Channel not found');
                     }
 
-                    // Stop collecting further interactions
                     collector.stop();
                 }
             } catch (error) {
