@@ -18,7 +18,7 @@ module.exports = {
    * @param {String[]} args
    */
   run: async (client, interaction, args) => {
-    let user = await Users.findOne({ userID: interaction.user.id });
+    let user = await Users.findOne({ user: interaction.user.id });
     if (!user) user = await client.create.user(interaction.user.id);
 
     let cards = await drawRandomCards(3);

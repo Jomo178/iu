@@ -42,7 +42,7 @@ module.exports = async (client, interaction) => {
         
             const newUser = new userBase({
                 user: interaction.user.id,
-                balance: "100",
+                balance: 100,
                 aena: 5,
                 favCard: "",
                 favCardImage: "",
