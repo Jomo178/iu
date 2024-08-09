@@ -1,5 +1,5 @@
-const Issue = require('../models/issue');
-const Card = require('../models/card');
+const Issue = require('../models/issue.js');
+const Card = require('../models/card.js');
 
 // Function to draw random cards with pull rates based on rarity
 async function drawRandomCards(count) {
@@ -15,11 +15,17 @@ async function drawRandomCards(count) {
   return selected.map(issue => ({
     name: issue.name,
     value: issue.rarity,
-    image: issue.image
+    act: issue.act,
+    group: issue.group,
+    image: issue.image,
+    star: issue.star,
+    logo: issue.logo,
+    code: issue.code
+    
   }));
 }
 
-// Function to get the next issue number for a card
+
 async function getNextIssueNumber(cardName) {
   const cards = await Card.find({ name: cardName });
   const issueNumbers = cards.map(card => card.issue).sort((a, b) => a - b);

@@ -1,53 +1,53 @@
-const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, InteractionCollector } = require("discord.js");
+const { ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, InteractionCollector, EmbedBuilder } = require('discord.js');
 const issueBase = require("../../models/issue.js");
 
 module.exports = {
     name: 'issuecard',
     category: 'dev',
     description: 'Add a new card issue to the database',
-    options: [],
     deferBypass: true,  
     run: async (client, interaction, args) => {
-        let issueCardModal = new ModalBuilder()
+        const issueCardModal = new ModalBuilder()
             .setCustomId('issuecard_modal')
             .setTitle('Issue a New Card');
 
-        let nameInput = new TextInputBuilder()
+        const nameInput = new TextInputBuilder()
             .setCustomId('name')
             .setLabel('Name of the person')
-            .setStyle(1)
+            .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
-        let groupInput = new TextInputBuilder()
+        const groupInput = new TextInputBuilder()
             .setCustomId('group')
             .setLabel('Group of the idol')
-            .setStyle(1)
+            .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
-        let rarityInput = new TextInputBuilder()
+        const rarityInput = new TextInputBuilder()
             .setCustomId('rarity')
             .setLabel('Rarity of the card')
-            .setStyle(1)
+            .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
-        let actInput = new TextInputBuilder()
+        const actInput = new TextInputBuilder()
             .setCustomId('act')
             .setLabel('Act of the idol')
-            .setStyle(1)
+            .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
-        let imageInput = new TextInputBuilder()
-            .setCustomId('image')
-            .setLabel('URL for the card')
-            .setStyle(1)
-            .setRequired(true);
+        const mediaInput = new TextInputBuilder()
+            .setCustomId('media')
+            .setLabel('URLs for Card, Star, and Logo')
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true)
+            .setPlaceholder('Enter URLs in the following format:\nCard URL\nStar URL\nLogo URL');
 
         issueCardModal.addComponents(
             new ActionRowBuilder().addComponents(nameInput),
             new ActionRowBuilder().addComponents(groupInput),
             new ActionRowBuilder().addComponents(rarityInput),
             new ActionRowBuilder().addComponents(actInput),
-            new ActionRowBuilder().addComponents(imageInput)
+            new ActionRowBuilder().addComponents(mediaInput)
         );
 
         await interaction.showModal(issueCardModal);
@@ -56,56 +56,73 @@ module.exports = {
         const collector = new InteractionCollector(client, { filter, time: 120000 });
 
         collector.on('collect', async (i) => {
-            if (i.customId === 'issuecard_modal') {
-                const name = i.fields.getTextInputValue('name');
-                const group = i.fields.getTextInputValue('group');
-                const rarity = i.fields.getTextInputValue('rarity');
-                const act = i.fields.getTextInputValue('act');
-                const image = i.fields.getTextInputValue('image');
-                const code = generateCardCode(name, group, rarity, interaction.user.username);
+            try {
+                if (i.customId === 'issuecard_modal') {
+                    if (!i.isModalSubmit()) return;
 
-                const existingIssue = await issueBase.findOne({ code });
-                if (existingIssue) {
-                    if (!i.replied && !i.deferred) {
-                        return i.reply({ content: `This code already exists: ${code}`, ephemeral: true });
-                    } else {
-                        console.error('Interaction already replied or deferred');
-                        return;
+                    const name = i.fields.getTextInputValue('name');
+                    const group = i.fields.getTextInputValue('group');
+                    const rarity = i.fields.getTextInputValue('rarity');
+                    const act = i.fields.getTextInputValue('act');
+                    const media = i.fields.getTextInputValue('media').split('\n');
+
+                    if (media.length !== 3) {
+                        return i.reply({ content: 'Please provide exactly three URLs, separated by new lines.', ephemeral: true });
                     }
-                }
 
-                const newIssue = new issueBase({
-                    name,
-                    group,
-                    rarity,
-                    act,
-                    code,
-                    image
-                });
-                await newIssue.save();
+                    const image = media[0].trim();
+                    const star = media[1].trim();
+                    const logo = media[2].trim();
 
-                const embed = new EmbedBuilder()
-                    .setTitle('New Card Issue Added')
-                    .setDescription(`
-                        **Name:** ${name}
-                        **Group:** ${group}
-                        **Rarity:** ${rarity}
-                        **Act:** ${act}
-                        **Code:** ${code}
-                    `)
-                    .setThumbnail(image)
-                    .setColor('#303135');
+                    if (isNaN(rarity)) {
+                        return i.reply({ content: 'Rarity must be a number.', ephemeral: true });
+                    }
 
-                if (!i.replied && !i.deferred) {
+                    const code = generateCardCode(name, group, rarity, interaction.user.username);
+
+                    const existingIssue = await issueBase.findOne({ code });
+                    if (existingIssue) {
+                        return i.reply({ content: `This code already exists: ${code}`, ephemeral: true });
+                    }
+
+                    const newIssue = new issueBase({
+                        name,
+                        group,
+                        rarity,
+                        act,
+                        code,
+                        image,
+                        star,
+                        logo
+                    });
+                    await newIssue.save();
+
+                    const embed = new EmbedBuilder()
+                        .setTitle('New Card Issue Added')
+                        .setDescription(`
+                            **Name:** ${name}
+                            **Group:** ${group}
+                            **Rarity:** ${rarity}
+                            **Act:** ${act}
+                            **Code:** ${code}
+                        `)
+                        .setThumbnail(image)
+                        .setColor('#303135');
+
                     await i.reply({ embeds: [embed], ephemeral: true });
-                }
 
-                const channel = client.channels.cache.get('1270037664724291584');
-                if (channel) {
-                    await channel.send({ embeds: [embed] });
-                } else {
-                    console.error('Channel not found');
+                    const channel = client.channels.cache.get('1270037664724291584');
+                    if (channel) {
+                        await channel.send({ embeds: [embed] });
+                    } else {
+                        console.error('Channel not found');
+                    }
+
+                    // Stop collecting further interactions
+                    collector.stop();
                 }
+            } catch (error) {
+                console.error('Error handling interaction:', error);
             }
         });
     }

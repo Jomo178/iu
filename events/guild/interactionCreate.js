@@ -31,15 +31,15 @@ module.exports = async (client, interaction) => {
                 
                 Breaking any of these terms will first lead to a permanent blacklist from the bot or a verbal warning based on the severity.`)
                 .setColor('#303135');
-
+        
             const joinButton = new ButtonBuilder()
                 .setLabel('Join the Uaenaverse Community Server')
                 .setStyle(ButtonStyle.Link)
-                .setURL('https://discord.gg/delufe');
-
+                .setURL('https://discord.gg/aQkUGvZmSu');
+        
             const row = new ActionRowBuilder().addComponents(joinButton);
             await interaction.followUp({ embeds: [embed], components: [row] });
-
+        
             const newUser = new userBase({
                 user: interaction.user.id,
                 balance: "100",
@@ -50,9 +50,11 @@ module.exports = async (client, interaction) => {
                 bio: "Set this using /bio <message>",
                 joined: new Date().toISOString()
             });
-            await newUser.save();
+        
+        console.log(`Saving new user: ${interaction.user.id}`);
+        
+        await newUser.save();
         }
-
         const args = [];
 
         for (let option of interaction.options.data) {

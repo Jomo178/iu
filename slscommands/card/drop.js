@@ -21,7 +21,6 @@ module.exports = {
     let user = await Users.findOne({ userID: interaction.user.id });
     if (!user) user = await client.create.user(interaction.user.id);
 
-    // Draw 3 random cards
     let cards = await drawRandomCards(3);
 
 
@@ -38,15 +37,15 @@ module.exports = {
 
     const attachment = new AttachmentBuilder()
       .setFile(await canvas.encode("png"))
-      .setName("summon.png");
+      .setName("drop.png");
 
         var embed = new EmbedBuilder()
         .setColor(client.bot.color)
         .setAuthor({
-          name: `${interaction.user.tag} — Summon`,
+          name: `${interaction.user.tag} — Drop`,
           iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
         })
-        .setImage(`attachment://summon.png`);
+        .setImage(`attachment://drop.png`);
 
         const buttons = new ActionRowBuilder().addComponents(
           new ButtonBuilder().setCustomId(`card1`).setLabel(`1`).setStyle(1),
@@ -84,17 +83,20 @@ module.exports = {
       const session = await mongoose.startSession();
       session.startTransaction();
       try {
-        // Get the next issue number for the selected card
         const nextIssueNumber = await getNextIssueNumber(selectedCard.name);
 
-        // Create a new card with the owner ID
         const newCard = new Card({
-          owner: interaction.user.id,
           name: selectedCard.name,
+          group: selectedCard.group,
           rarity: selectedCard.value,
+          act: selectedCard.act,
+          owner: interaction.user.id,
+          date: new Date().toISOString(),
           issue: nextIssueNumber,
+          code: `${selectedCard.code}#${nextIssueNumber}`, 
           image: selectedCard.image,
-          code: selectedCard.code,
+          star: selectedCard.star,
+          logo: selectedCard.logo      
         });
 
         await newCard.save({ session });
@@ -104,7 +106,7 @@ module.exports = {
           embeds: [
             new EmbedBuilder()
               .setColor(client.bot.color)
-              .setAuthor({ name: "Dropped Card", iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
+              .setAuthor({ name: "Card Claimed", iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
               .setDescription(`**Name:** ${selectedCard.name}\n**Issue Number:** ${nextIssueNumber}\n**Rarity:** ${selectedCard.value}`)
               .setImage(selectedCard.image)
           ],
