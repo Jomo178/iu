@@ -26,6 +26,7 @@ client.setMaxListeners(20);
 client.config = config;
 client.devs = config.devs;
 client.create = require("./functions/create.js");
+client.cd = require("./functions/cooldown.js");
 
 client.cooldowns = new Map();
 client.snipes = new Collection();

@@ -7,6 +7,9 @@ const Schema = mongoose.Schema({
   rarity: String,
   code: String,
   image: String,
+  star: String,
+  logo: String,
+
 });
 
 module.exports = mongoose.model("issue", Schema);

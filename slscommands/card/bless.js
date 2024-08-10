@@ -1,5 +1,6 @@
 const { EmbedBuilder, AttachmentBuilder, ButtonBuilder, ActionRowBuilder, TextInputBuilder, InteractionCollector, ModalBuilder } = require("discord.js");
 const userBase = require("../../models/user.js");
+const verifyCD = require("../../functions/verifyCooldown.js");
 module.exports = {
     name: 'bless',
     category: 'economy',
@@ -14,7 +15,7 @@ module.exports = {
      * @param {String[]} args
      */
     run: async (client, interaction, args) => {
-
+        
 
         const user = interaction.user;
         const mentioned = interaction.options.getUser('user');
@@ -33,6 +34,8 @@ module.exports = {
             return await interaction.followUp({ content: '\`❌\` User mentioned not found.', ephemeral: true });
         }
 
+        let verify = await verifyCD(client, interaction, "bless", 2700000); 
+        if (verify) return;
 
         firstUser.balance += amount;
         mentionedUser.balance += amount;

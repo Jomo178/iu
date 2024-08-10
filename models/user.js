@@ -9,7 +9,8 @@ const Schema = mongoose.Schema({
     lf: String,
     bio: String,
     joined: String,
-    
+    streak: Number,
+    streakTime: Date,
 })
 
 module.exports = mongoose.model('user', Schema)

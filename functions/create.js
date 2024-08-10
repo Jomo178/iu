@@ -18,8 +18,14 @@ module.exports = {
 
     user: async function (id) {
         var data = await Users.create({
-            id,
-            xp: 0
+            user: id,
+            balance: 100,
+            aena: 5,
+            favCard: "",
+            favCardImage: "",
+            lf: "Set this using /looking-for <message>",
+            bio: "Set this using /bio <message>",
+            joined: new Date().toISOString()
         })
 
         return data;

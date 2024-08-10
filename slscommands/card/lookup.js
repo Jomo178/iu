@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const cardBase = require("../../models/card.js");
+const getRarity = require("../../functions/getRarity.js");
 
 module.exports = {
   name: "lookup",
@@ -26,16 +27,11 @@ module.exports = {
       });
     }
 
-    // Debugging: Check the values of lookup fields
-    console.log("Lookup:", lookup.act);
+    const cardName = lookup.name 
+    const cardAct = lookup.act
+    const cardRarity = lookup.rarity
+    const cardOwner = lookup.owner
 
-    // Declare variables with default values if the fields are missing
-    const cardName = lookup.name || "N/A";
-    const cardAct = lookup.act || "N/A";
-    const cardRarity = `\`${lookup.rarity || "N/A"}\``;
-    const cardOwner = lookup.owner ? `<@${lookup.owner}>` : "N/A";
-
-    // Ensure date is parsed correctly
     let createdDate = new Date(lookup.date);
     let createdTimestamp = "N/A";
     if (!isNaN(createdDate.getTime())) {
@@ -45,8 +41,8 @@ module.exports = {
     const description = [
       `**Name:** ${cardName}`,
       `**Act:** ${cardAct}`,
-      `**Rarity:** ${cardRarity}`,
-      `**Owner:** ${cardOwner}`,
+      `**Rarity:** ${getRarity(cardRarity)}`,
+      `**Owner:** <@${cardOwner}>`,
       `**Issued:** ${
         createdTimestamp === "N/A" ? "N/A" : `<t:${createdTimestamp}:F>`
       }`,
@@ -58,7 +54,7 @@ module.exports = {
         iconURL: user.displayAvatarURL({ dynamic: true }),
       })
       .setDescription(
-        `${user} searched for \n\`\`\`${cardCode}\`\`\`\n\n${description}`
+        `${user} searched for \n\`\`\`${cardCode}\`\`\`\n${description}`
       )
       .setThumbnail(lookup.image || "https://example.com/default-thumbnail.png")
       .setColor("#303135");
