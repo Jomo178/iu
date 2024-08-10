@@ -1,68 +1,41 @@
-/** const { EmbedBuilder, AttachmentBuilder, ButtonBuilder, ActionRowBuilder, TextInputBuilder, InteractionCollector, ModalBuilder } = require("discord.js");
-const cmdCD = require(`command-cooldown`)
-const humanized = require('humanize-duration')
+const { CommandInteraction, EmbedBuilder } = require("discord.js");
 
 module.exports = {
-    name: 'cooldown',
-    category: 'user',
-    description: 'Check your command cooldowns.',
-    '/**'
-     *
-     * @param {Client} client
-     * @param {CommandInteraction} interaction
-     * @param {String[]} args
-     */
-    /** 
-    run: async (client, interaction, args) => {
+  name: 'cooldown',
+  description: 'View your commands cooldowns',
+  deferBypass: 'true',
+    /**
+   *
+   * @param {Client} client
+   * @param {CommandInteraction} interaction
+   * @param {String[]} args
+   */
+  async run(client, interaction) {
+    const getCooldownStatus = async (userId, commandName) => {
+      const cd = await client.cd.checkCoolDown(userId, commandName);
+      return cd.ready
+        ? "`🟢` Ready"
+        : `\`🔴\` <t:${cd.unixTime}:R> (<t:${cd.unixTime}:t>)`;
+    };
 
-        let drop = await cmdCD.checkCoolDown(interaction.user.id, "drop")
-        let daily = await cmdCD.checkCoolDown(interaction.user.id, "daily")
-        let work = await cmdCD.checkCoolDown(interaction.user.id, "work")
-        let bless = await cmdCD.checkCoolDown(interaction.user.id, "bless")
+    const userId = interaction.user.id;
 
-        let dropcd = "🌸"
-        if (!drop.res.ready) {
-          const trueTime = humanized(drop.res.rem, { language: "en" }, { units: ['h', 'm', 's'], round: true });
-    
-          dropcd = trueTime
-        } else {
-          dropcd =  "\`🟢\` __Ready__"
-        }
-    
-        let dailycd = "🦋"
-        if (!daily.res.ready) {
-          const trueTime = humanized(daily.res.rem, { language: "en" }, { units: ['h', 'm', 's'], round: true });
-          dailycd = trueTime
-        } else {
-          dailycd =  "\`🟢\` __Ready__"
-        }
-    
-        let workcd = "🍭"
-        if (!work.res.ready) {
-          const trueTime = humanized(work.res.rem, { language: "en" }, { units: ['h', 'm', 's'], round: true });
-          workcd = trueTime
-        } else {
-          workcd = "\`🟢\` __Ready__"
-        }
-    
-        let blesscd = "🎀"
-        if (!bless.res.ready) {
-          const trueTime = humanized(bless.res.rem, { language: "en" }, { units: ['h', 'm', 's'], round: true });
-          blesscd = trueTime
-        } else {
-          blesscd = "\`🟢\` __Ready__"
-        }
+    const embed = new EmbedBuilder()
+      .setColor(client.bot.color)
+      .setAuthor({
+        name: `${interaction.user.username}'s Cooldowns`,
+        iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
+      });
 
-        const embed = new EmbedBuilder()
-            .setColor('#303135')
-            .addField('🌸 Daily', dailycd, true)
-            .addField('🦋 Drop', dropcd, true)
-            .addField('🍭 Work', workcd, true)
-            .addField('🎀 Bless', blesscd, true)
-            .setAuthor({ name: `${interaction.user.tag} — Cooldowns`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) });
-        
-        await interaction.reply({ embeds: [embed] });
+    const fields = [
+      { name: "🦋 Daily", value: await getCooldownStatus(userId, "daily") },
+      { name: "🌸 Drop", value: await getCooldownStatus(userId, "drop") },
+      { name: "🌈 Bless", value: await getCooldownStatus(userId, "bless") },
+      { name: "🎀 Work", value: await getCooldownStatus(userId, "work") },
+    ];
 
+    embed.addFields(fields);
+
+    await interaction.reply({ embeds: [embed] });
   }
-}
-*/
+};

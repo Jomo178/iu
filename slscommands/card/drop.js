@@ -19,13 +19,12 @@ module.exports = {
    * @param {String[]} args
    */
   run: async (client, interaction, args) => {
-<<<<<<< HEAD
+
+    let verify = await verifyCD(client, interaction, "drop", 1800000); 
+    if (verify) return;
+
     let user = await Users.findOne({ user: interaction.user.id });
-    if (!user) user = await client.create.user(interaction.user.id);
-=======
-    let user = await Users.findOne({ userID: interaction.user.id });
     const player = interaction.options.getUser("user") || interaction.user;
->>>>>>> 2edeb83ba9c4f6e40cc52f2d90017d7db9e606ae
 
     let cards = await drawRandomCards(3);
 

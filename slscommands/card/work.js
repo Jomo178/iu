@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const userBase = require("../../models/user.js");
+const verifyCD = require("../../functions/verifyCooldown.js");
 
 module.exports = {
     name: 'work',
@@ -12,6 +13,10 @@ module.exports = {
      * @param {String[]} args
      */
     run: async (client, interaction, args) => {
+
+        let verify = await verifyCD(client, interaction, "work", 3600000);
+        if (verify) return;
+
         const user = interaction.options.getUser("user") ? interaction.options.getUser("user") : interaction.user;
         const player = await userBase.findOne({ user: user.id });
 
