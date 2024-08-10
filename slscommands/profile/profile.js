@@ -39,6 +39,7 @@ module.exports = {
             .setAuthor({ name: user.tag || 'Profile', iconURL: user.displayAvatarURL({ dynamic: true }) })
             .setDescription(description)
             .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true })) 
+            .setColor('#303135') 
 
         if (favCardImage && favCardImage.startsWith('http')) {
             embed.setImage(favCardImage);

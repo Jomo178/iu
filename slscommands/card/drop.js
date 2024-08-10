@@ -4,6 +4,7 @@ const Users = require("../../models/user.js");
 const verifyCD = require("../../functions/verifyCooldown.js");
 const Card = require("../../models/card.js");
 const Canvas = require("@napi-rs/canvas");
+const getRarity = require("../../functions/getRarity.js");
 const { drawRandomCards, getNextIssueNumber } = require('../../utils/cardUtils');
 
 module.exports = {
@@ -18,11 +19,15 @@ module.exports = {
    * @param {String[]} args
    */
   run: async (client, interaction, args) => {
+<<<<<<< HEAD
     let user = await Users.findOne({ user: interaction.user.id });
     if (!user) user = await client.create.user(interaction.user.id);
+=======
+    let user = await Users.findOne({ userID: interaction.user.id });
+    const player = interaction.options.getUser("user") || interaction.user;
+>>>>>>> 2edeb83ba9c4f6e40cc52f2d90017d7db9e606ae
 
     let cards = await drawRandomCards(3);
-
 
     const canvas = Canvas.createCanvas(585, 290);
     const ctx = canvas.getContext("2d");
@@ -96,7 +101,7 @@ module.exports = {
           code: `${selectedCard.code}#${nextIssueNumber}`, 
           image: selectedCard.image,
           star: selectedCard.star,
-          logo: selectedCard.logo      
+          logo: selectedCard.logo
         });
 
         await newCard.save({ session });
@@ -106,8 +111,8 @@ module.exports = {
           embeds: [
             new EmbedBuilder()
               .setColor(client.bot.color)
-              .setAuthor({ name: "Card Claimed", iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
-              .setDescription(`**Name:** ${selectedCard.name}\n**Issue Number:** ${nextIssueNumber}\n**Rarity:** ${selectedCard.value}`)
+              .setAuthor({ name: `${player.tag} || Drop Claimed`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
+              .setDescription(`<@${interaction.user.id}> has claimed \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
               .setImage(selectedCard.image)
           ],
           components: [],
