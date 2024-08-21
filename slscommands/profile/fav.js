@@ -3,7 +3,7 @@ const userBase = require("../../models/user.js");
 
 module.exports = {
     name: 'favorite',
-    category: 'user',
+    category: 'profile',
     description: 'Choose your favorite card',
     options: [
         { type: 3, name: "favorite", description: "Enter the card code you would like to favorite", required: true  }

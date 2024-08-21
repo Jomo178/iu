@@ -13,4 +13,4 @@ const Schema = mongoose.Schema({
     streakTime: Date,
 })
 
-module.exports = mongoose.model('accounts', Schema)
+module.exports = mongoose.model('user', Schema)

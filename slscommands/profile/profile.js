@@ -3,7 +3,7 @@ const userBase = require("../../models/user.js");
 
 module.exports = {
     name: 'profile',
-    category: 'user',
+    category: 'profile',
     description: 'View the profile',
     options: [
         { type: 6, name: "user", description: "Target @member" }

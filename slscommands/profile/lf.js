@@ -3,7 +3,7 @@ const userBase = require("../../models/user.js");
 
 module.exports = {
     name: 'looking-for',
-    category: 'user',
+    category: 'profile',
     description: 'Enter a looking for status',
     options: [
         { type: 3, name: "lf", description: "Your looking for status", required: true  }

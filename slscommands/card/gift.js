@@ -7,6 +7,7 @@ module.exports = {
     name: "gift",
     description: "Gift a card to another user",
     deferBypass: true,
+    category: 'card',
     options: [
         {
             name: 'user',

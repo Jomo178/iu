@@ -4,7 +4,7 @@ const verifyCD = require("../../functions/verifyCooldown.js");
 module.exports = {
     name: 'bless',
     category: 'economy',
-    description: 'Bless yourself and another user with balance every hour',
+    description: 'Bless yourself and another user with koins every hour',
     options: [
         { name: 'user', type: 6, description: 'The user to bless', required: true }
     ],
@@ -46,7 +46,7 @@ module.exports = {
 
         const embed = new EmbedBuilder()
         .setAuthor({ name: user.tag || 'Bless', iconURL: user.displayAvatarURL({ dynamic: true }) })
-        .setDescription(`You blessed ${mentioned} and yourself with ${amount} balance.`)
+        .setDescription(`You blessed ${mentioned} and yourself with ${amount} koins.`)
         .setColor('#303135') 
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
       

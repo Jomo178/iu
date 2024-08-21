@@ -2,7 +2,7 @@ const { EmbedBuilder, AttachmentBuilder, ButtonBuilder, ActionRowBuilder, TextIn
 
 module.exports = {
     name: 'ping',
-    category: 'pong',
+    category: 'utility',
     description: 'check ping',
     /**
      *

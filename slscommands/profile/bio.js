@@ -3,7 +3,7 @@ const userBase = require("../../models/user.js");
 
 module.exports = {
     name: 'bio',
-    category: 'user',
+    category: 'profile',
     description: 'Enter a bio',
     options: [
         { type: 3, name: "bio", description: "Your new bio", required: true  }

@@ -2,6 +2,7 @@ const { CommandInteraction, EmbedBuilder } = require("discord.js");
 
 module.exports = {
   name: 'cooldown',
+  category: 'card',
   description: 'View your commands cooldowns',
   deferBypass: 'true',
     /**
@@ -22,7 +23,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setColor(client.bot.color)
-      .setTitle(`${user.tag}'s Cooldowns `)
+      .setAuthor({ name: interaction.user.tag || 'Cooldowns', iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
       .setAuthor({
         name: `${interaction.user.username}'s Cooldowns`,
         iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
