@@ -4,7 +4,7 @@ const verifyCD = require("../../functions/verifyCooldown.js");
 
 module.exports = {
     name: 'work',
-    category: 'user',
+    category: 'economy',
     description: 'Do some work',
     /**
      *

@@ -1,5 +1,6 @@
 const { Client, Events, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionType } = require("discord.js");
 const userBase = require("../../models/user.js");
+const CommandUsage = require("../../models/commandusage.js");
 
 module.exports = async (client, interaction) => {
     if (interaction.isUserContextMenuCommand()) {
@@ -15,6 +16,14 @@ module.exports = async (client, interaction) => {
         if (!cmd.deferBypass) {
             await interaction.deferReply({ ephemeral: false }).catch(() => { });
         }
+
+        let commandUsage = await CommandUsage.findOne({ command: interaction.commandName });
+        if (!commandUsage) {
+          commandUsage = new CommandUsage({ command: interaction.commandName, usageCount: 0 });
+        }
+        commandUsage.usageCount += 1;
+        await commandUsage.save();    
+
 
         const userInfo = await userBase.findOne({ user: interaction.user.id });
 

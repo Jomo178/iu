@@ -3,8 +3,9 @@ const cardBase = require("../../models/card.js");
 const getRarity = require("../../functions/getRarity.js");
 
 module.exports = {
-  name: "inventory",
+  name: "inventory-cards",
   description: "View the cards in your inventory",
+  category: 'economy',
   options: [
     {
       name: "user",

@@ -29,6 +29,8 @@ client.create = require("./functions/create.js");
 client.cd = require("./functions/cooldown.js");
 
 client.cooldowns = new Map();
+client.devs = config.devs;
+client.categories = fs.readdirSync("./slscommands/");
 client.snipes = new Collection();
 client.context = new Collection();
 client.commands = new Collection();

@@ -4,7 +4,7 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 const Users = require("../../models/user.js");
-const moment = require("moment")
+const moment = require("moment");
 const verifyCD = require("../../functions/verifyCooldown.js");
 
 module.exports = {
@@ -20,11 +20,11 @@ module.exports = {
    */
   run: async (client, interaction, args) => {
     let verify = await verifyCD(client, interaction, "daily", 86400000);
-		if (verify) return;
+    if (verify) return;
     
-    var money = 100;
+    let money = 100;
 
-    var user = await Users.findOne({ user: interaction.user.id });
+    let user = await Users.findOne({ user: interaction.user.id });
     if (!user) user = await client.create.user(interaction.user.id);
 
     if (!user.streak) user.streak = 0;
@@ -43,6 +43,7 @@ module.exports = {
         ? `You lost your streak of \`${streak.oldStreak}\` days!`
         : ""
     }\n${`You are now on a streak of \`${streak.newStreak}\` days!`}`;
+    
     let embed = new EmbedBuilder()
       .setColor(client.bot.color)
       .setAuthor({
@@ -58,15 +59,12 @@ module.exports = {
 
     async function getStreak(user) {
       let oldStreak = user.streak;
-      var lost = false;
+      let lost = false;
       if (user.streakTime) {
-        var hours = moment
-          .duration(
-            moment(new Date(), "DD/MM/YYYY HH:mm:ss").diff(
-              moment(user.streakTime, "DD/MM/YYYY HH:mm:ss")
-            )
-          )
-          .asHours();
+        let now = new Date();
+        let streakTime = new Date(user.streakTime);
+
+        let hours = (now - streakTime) / (1000 * 60 * 60);
 
         if (hours > 48) {
           user.streak = 0;
@@ -75,15 +73,13 @@ module.exports = {
       }
 
       user.streak += 1;
-      user.streakTime = moment(new Date()).format("DD/MM/YYYY HH:mm:ss");
+      user.streakTime = new Date(); // Set to the current date and time
 
-      let obj = {
-        oldStreak: oldStreak,
+      return {
+        oldStreak,
         newStreak: user.streak,
         lostStreak: lost,
       };
-
-      return obj;
     }
   },
 };

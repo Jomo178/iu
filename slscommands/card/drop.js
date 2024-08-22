@@ -46,9 +46,10 @@ module.exports = {
         var embed = new EmbedBuilder()
         .setColor(client.bot.color)
         .setAuthor({
-          name: `${interaction.user.tag} — Drop`,
+          name: `${interaction.user.tag} || Drop`,
           iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
         })
+        .setDescription(`<${interaction.user.id}> is dropping 3 cards!`)
         .setImage(`attachment://drop.png`);
 
         const buttons = new ActionRowBuilder().addComponents(

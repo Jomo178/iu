@@ -3,6 +3,7 @@ const userBase = require('../../models/user.js');
 
 module.exports = {
     name: 'give',
+    category: 'economy',
     description: 'Transfer balance or aena to another user',
     options: [
         { name: 'user', type: 6, description: 'The user to give currency to', required: true },
