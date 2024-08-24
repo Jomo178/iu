@@ -35,19 +35,18 @@ module.exports = {
             .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
-        const mediaInput = new TextInputBuilder()
-            .setCustomId('media')
+        const imageInput = new TextInputBuilder()
+            .setCustomId('image')
             .setLabel('URLs for Card, Star, and Logo')
             .setStyle(TextInputStyle.Paragraph)
             .setRequired(true)
-            .setPlaceholder('Enter URLs in the following format:\nCard URL\nStar URL\nLogo URL');
 
         issueCardModal.addComponents(
             new ActionRowBuilder().addComponents(nameInput),
             new ActionRowBuilder().addComponents(groupInput),
             new ActionRowBuilder().addComponents(rarityInput),
             new ActionRowBuilder().addComponents(actInput),
-            new ActionRowBuilder().addComponents(mediaInput)
+            new ActionRowBuilder().addComponents(imageInput)
         );
 
         await interaction.showModal(issueCardModal);
@@ -64,15 +63,7 @@ module.exports = {
                     const group = i.fields.getTextInputValue('group');
                     const rarity = i.fields.getTextInputValue('rarity');
                     const act = i.fields.getTextInputValue('act');
-                    const media = i.fields.getTextInputValue('media').split('\n');
-
-                    if (media.length !== 3) {
-                        return i.reply({ content: 'Please provide exactly three URLs, separated by new lines.', ephemeral: true });
-                    }
-
-                    const image = media[0].trim();
-                    const star = media[1].trim();
-                    const logo = media[2].trim();
+                    const image = i.fields.getTextInputValue('image');
 
                     if (isNaN(rarity)) {
                         return i.reply({ content: 'Rarity must be a number.', ephemeral: true });
@@ -92,8 +83,6 @@ module.exports = {
                         act,
                         code,
                         image,
-                        star,
-                        logo
                     });
                     await newIssue.save();
 

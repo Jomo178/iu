@@ -13,7 +13,7 @@ module.exports = {
     run: async (client, interaction) => {
         const commandDescriptions = {
             'Drop': 'Drops 3 cards choose one.',
-            'Cooldown': 'Check your cooldown.',
+            'Cooldown': 'Check your commands cooldown.',
             'Gift': 'Gift a card to another user.',
             'Inventory-card': 'Displays your card inventory.',
             'Lookup': 'Looks up details of a specific card.',
@@ -28,14 +28,12 @@ module.exports = {
             'Favorite': 'Edit your favorite items or cards.'
         };
 
-        // Create the main help menu embed
         const createHelpEmbed = () => new EmbedBuilder()
-            .setColor('#0099ff') // Set your desired color
+            .setColor('#739072') 
             .setTitle('Help Menu')
             .setDescription('Select a command to get more details:\nCard Commands: \`\`\`drop, cooldown, gift, inventory, lookup\`\`\`\nEconomy Commands: \`\`\`bless, daily, give, work, balance\`\`\`\nProfile Commands: \`\`\`profile, looking-for, bio, favorite\`\`\` ')
             .setFooter({ text: 'Select a command from the dropdown menu for more info.' });
 
-        // Create the select menu
         const createSelectMenu = () => new StringSelectMenuBuilder()
             .setCustomId('command_select')
             .setPlaceholder('Select a command')
@@ -51,7 +49,7 @@ module.exports = {
         let helpMessage = await interaction.reply({ embeds: [createHelpEmbed()], components: [createActionRow(createSelectMenu())], fetchReply: true });
 
         const filter = i => i.customId === 'command_select' && i.user.id === interaction.user.id;
-        const collector = helpMessage.createMessageComponentCollector({ filter, time: 60000 }); // Extend time if needed
+        const collector = helpMessage.createMessageComponentCollector({ filter, time: 60000 }); 
 
         collector.on('collect', async (i) => {
             const selectedCommand = i.values[0];
@@ -63,7 +61,6 @@ module.exports = {
                     .setDescription(commandDescriptions[selectedCommand])
                     .setFooter({ text: 'Use the dropdown menu to select another command.' });
 
-                // Update the message with the command details and re-add the select menu
                 await i.update({ embeds: [commandEmbed], components: [createActionRow(createSelectMenu())] });
             } else {
                 await i.update({ content: 'Invalid command selected.', components: [createActionRow(createSelectMenu())] });
@@ -71,7 +68,6 @@ module.exports = {
         });
 
         collector.on('end', async () => {
-            // Edit the original message to indicate the help menu has expired
             await helpMessage.edit({ components: [] });
         });
     }

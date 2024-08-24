@@ -29,7 +29,7 @@ module.exports = {
             .setAuthor({ name: interaction.user.tag || `Balance` , iconURL: interaction.user.displayAvatarURL({ dynamic: true })})
             .setTitle(`${user.tag}'s Balance `)
             .setDescription(`\`🪙\` Balance: ${player.balance}\n\`🍓\` Aena: ${player.aena} `)
-            .setColor('#303135') 
+            .setColor('#FFE5E5') 
             .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true })) 
       
         

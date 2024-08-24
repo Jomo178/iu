@@ -11,13 +11,13 @@ module.exports = {
     options: [
         {
             name: 'user',
-            type: 6, 
+            type: 6, // USER type for Discord user
             description: 'User to gift the card to',
             required: true
         },
         {
             name: 'cardcode',
-            type: 3, 
+            type: 3, // STRING type for card code
             description: 'The code of the card you want to gift',
             required: true
         }
@@ -28,29 +28,31 @@ module.exports = {
      * @param {CommandInteraction} interaction
      */
     run: async (client, interaction) => {
-
         const recipient = interaction.options.getUser('user');
         const cardCode = interaction.options.getString('cardcode');
+        const userexists = await userBase.findOne({ user: recipient.id });
+
+        if (!userexists) {
+            return interaction.reply({ content: '`❌` The mentioned user does not exist!', ephemeral: true });
+        }
 
         if (recipient.id === interaction.user.id) {
             return interaction.reply({ content: '`❌` You cannot gift a card to yourself!', ephemeral: true });
-        }
-
-        if (!cardCode) {
-            return interaction.reply({ content: '`❌` Please enter a valid card code!', ephemeral: true });
         }
 
         const card = await cardModel.findOne({ code: cardCode, owner: interaction.user.id });
 
         if (!card) {
             return interaction.reply({
-                content: ` \`❌\` You do not own the card with code \`${cardCode}\``, ephemeral: true });
+                content: `\`❌\` You do not own the card with code \`${cardCode}\` or the code is invalid.`, 
+                ephemeral: true 
+            });
         }
 
         const confirmationEmbed = new EmbedBuilder()
             .setAuthor({ name: `${interaction.user.tag} — Confirm Gift`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
             .setDescription(`Are you sure you want to gift \`${card.code}\` **${card.name}** \`${getRarity(card.rarity)}\` to <@${recipient.id}>?`)
-            .setColor('#303135')
+            .setColor('#55AD9B')
             .setFooter({
                 text: 'Click a button to confirm or cancel',
                 iconURL: client.user.displayAvatarURL({ dynamic: true })
@@ -86,15 +88,14 @@ module.exports = {
                     .setTitle('Gift Card')
                     .setDescription(`You have successfully gifted \`${card.code}\` **${card.name}** \`${getRarity(card.rarity)}\` to <@${recipient.id}>.`)
                     .setImage(card.image)
-                    .setColor('#303135')
+                    .setColor('#55AD9B');
 
                 await interaction.followUp({ embeds: [successEmbed] });
 
                 const recipientEmbed = new EmbedBuilder()
                     .setTitle(`${interaction.user.tag} Gifted You A Card!`)
                     .setDescription(`You were gifted: \`${card.code}\` **${card.name}** \`${getRarity(card.rarity)}\``)
-                    .setImage(card.image)
-                    .setColor('#303135')
+                    .setColor('#55AD9B')
                     .setFooter({
                         text: 'Make Sure To Thank Them For The Gift!',
                         iconURL: client.user.displayAvatarURL({ dynamic: true })
