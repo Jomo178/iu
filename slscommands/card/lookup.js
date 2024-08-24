@@ -67,9 +67,9 @@ module.exports = {
     }
 
     // Define font sizes and adjustment based on whether the font is big or not
-    const defaultFontSize = isBigFont ? 70 : 80;
-    const smallerFontSize = isBigFont ? 50 : 65;
-    const actFontSize = 35;
+    const defaultFontSize = isBigFont ? 65 : 75;
+    const smallerFontSize = isBigFont ? 55 : 60;
+    const actFontSize = 30;
     const actYOffset = isBigFont ? 5 : 0; // Adjust vertical position for act text
 
     ctx.fillStyle = 'white'; 

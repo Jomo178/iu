@@ -103,24 +103,30 @@ module.exports = {
       let selectedCardImage = await Canvas.loadImage(selectedCard.image);
       ctxHi.drawImage(selectedCardImage, 0, 0, hi.width, hi.height);
 
-      const defaultFontSize = 80;
-      const smallerFontSize = 65;
-      const actFontSize = 35;
+      const defaultFontSize = 75;
+      const smallerFontSize = 60;
+      const actFontSize = 30;
   
-      
+      ctxHi.strokeStyle = 'black'; 
+      ctxHi.lineWidth = 6; 
+  
       if (selectedCard.name.length > 7) {
         ctxHi.font = `${smallerFontSize}px "${fontFamily}"`; 
         ctxHi.fillStyle = 'white'; 
+        ctxHi.strokeText(selectedCard.name, 80, 735); 
         ctxHi.fillText(selectedCard.name, 80, 735);
         
         ctxHi.font = `${actFontSize}px "${fontFamily}"`;
-        ctxHi.fillText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize));
+        ctxHi.strokeText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize)); 
+        ctxHi.fillText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize)); 
       } else {
         ctxHi.font = `${defaultFontSize}px "${fontFamily}"`; 
         ctxHi.fillStyle = 'white'; 
+        ctxHi.strokeText(selectedCard.name, 80, 735); 
         ctxHi.fillText(selectedCard.name, 80, 735); 
 
         ctxHi.font = `${actFontSize}px "${fontFamily}"`; 
+        ctxHi.strokeText(selectedCard.act, 80, 660); 
         ctxHi.fillText(selectedCard.act, 80, 660);     
       }
       

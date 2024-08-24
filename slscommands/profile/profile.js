@@ -59,36 +59,36 @@ module.exports = {
         }
       }
 
-      // Define font sizes and adjustment based on whether the font is big or not
-      const defaultFontSize = isBigFont ? 70 : 80;
-      const smallerFontSize = isBigFont ? 50 : 65;
-      const actFontSize = isBigFont ? 30 : 35;
+      const defaultFontSize = isBigFont ? 65 : 75;
+      const smallerFontSize = isBigFont ? 55 : 60;
+      const actFontSize = 30;
       const actYOffset = isBigFont ? 5 : 0; // Adjust vertical position for act text
-
+    
       ctx.fillStyle = 'white'; 
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 6;
-
+  
       console.log(`Using font: ${fontFamily || 'default'}, Default font size: ${defaultFontSize}, Smaller font size: ${smallerFontSize}, Act font size: ${actFontSize}`);
-
+  
+      // Draw card name
       if (cardName.length > 7) {
         ctx.font = `${smallerFontSize}px "${fontFamily || 'default'}"`;
-        ctx.strokeText(cardName, 80, 735);
-        ctx.fillText(cardName, 80, 735);
-
+        ctx.strokeText(cardName, 84, 731); 
+        ctx.fillText(cardName, 84, 731); 
+  
         ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-        ctx.strokeText(cardAct, 80, 660 + (defaultFontSize - smallerFontSize) + actYOffset);
-        ctx.fillText(cardAct, 80, 660 + (defaultFontSize - smallerFontSize) + actYOffset);
+        ctx.strokeText(cardAct, 84, 731 - (smallerFontSize - actYOffset));
+        ctx.fillText(cardAct, 84, 731 - (smallerFontSize - actYOffset)); 
       } else {
         ctx.font = `${defaultFontSize}px "${fontFamily || 'default'}"`;
-        ctx.strokeText(cardName, 80, 735);
-        ctx.fillText(cardName, 80, 735);
-
+        ctx.strokeText(cardName, 84, 731);
+        ctx.fillText(cardName, 84, 731); 
+  
         ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-        ctx.strokeText(cardAct, 80, 660 + actYOffset); // Ensuring the Y offset is applied correctly
-        ctx.fillText(cardAct, 80, 660 + actYOffset); // Applying the Y offset
+        ctx.strokeText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
+        ctx.fillText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
       }
-
+  
       const attachment = new AttachmentBuilder()
         .setFile(await canvas.encode('webp'))
         .setName('favCard.webp');
