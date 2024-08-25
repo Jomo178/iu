@@ -8,7 +8,7 @@ module.exports = async function(client, message, command, time){
         let embed = new EmbedBuilder()
         .setColor(client.bot.color)
         .setAuthor({name: `${message.user.tag} | Cooldown`, iconURL: message.user.displayAvatarURL({dynamic: true})})
-        .setDescription(`You can use the command \`${command}\` <t:${cd.unixTime}:R>.`)
+        .setDescription(`The \`${command}\` command is on a cooldown for <t:${cd.unixTime}:R>.`)
     
         if(!cd.ready){
             message.followUp({embeds: [embed]});
@@ -23,7 +23,7 @@ module.exports = async function(client, message, command, time){
     let embed = new EmbedBuilder()
     .setColor(client.bot.color)
     .setAuthor({name: `${message.author.tag} | Cooldown`, iconURL: message.author.displayAvatarURL({dynamic: true})})
-    .setDescription(`You can use the command \`${command}\` <t:${cd.unixTime}:R>.`)
+    .setDescription(`The \`${command}\` command is on a cooldown for <t:${cd.unixTime}:R>.`)
 
     if(!cd.ready){
         message.reply({embeds: [embed]});

@@ -20,6 +20,8 @@ module.exports = {
    * @param {String[]} args
    */
   run: async (client, interaction, args) => {
+    let verify = await verifyCD(client, interaction, "daily", 86400000);
+    if (verify) return;
     let money = 100;
 
     let user = await Users.findOne({ user: interaction.user.id });
