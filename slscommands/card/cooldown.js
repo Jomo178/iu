@@ -22,7 +22,7 @@ module.exports = {
     const userId = interaction.user.id;
 
     const embed = new EmbedBuilder()
-      .setColor(client.bot.color)
+      .setColor(`#F8EDE3`)
       .setAuthor({ name: interaction.user.tag || 'Cooldowns', iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
       .setAuthor({
         name: `${interaction.user.username}'s Cooldowns`,
@@ -31,6 +31,7 @@ module.exports = {
 
     const fields = [
       { name: "Daily", value: await getCooldownStatus(userId, "daily") },
+      { name: "Hunt", value: await getCooldownStatus(userId, "hunt") },
       { name: "Drop", value: await getCooldownStatus(userId, "drop") },
       { name: "Bless", value: await getCooldownStatus(userId, "bless") },
       { name: "Work", value: await getCooldownStatus(userId, "work") },

@@ -4,6 +4,7 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 const Users = require("../../models/user.js");
+const Font = require("../../models/fonts.js");
 const moment = require("moment");
 const verifyCD = require("../../functions/verifyCooldown.js");
 
@@ -21,7 +22,6 @@ module.exports = {
   run: async (client, interaction, args) => {
     let verify = await verifyCD(client, interaction, "daily", 86400000);
     if (verify) return;
-    
     let money = 100;
 
     let user = await Users.findOne({ user: interaction.user.id });
@@ -36,6 +36,13 @@ module.exports = {
 
     console.log(user.balance, money);
     user.balance += money;
+
+    // Determine if the user should receive a new font
+    let fontReward = null;
+    if (streak.newStreak % 3 === 0) {
+      fontReward = await giveRandomFont(user);
+    }
+
     await user.save();
 
     let text = `${
@@ -43,19 +50,22 @@ module.exports = {
         ? `You lost your streak of \`${streak.oldStreak}\` days!`
         : ""
     }\n${`You are now on a streak of \`${streak.newStreak}\` days!`}`;
-    
+
+    if (fontReward) {
+      text += `\nYou have also received a new random font: \`${fontReward.name}\`!`;
+    } else {
+      text += `\nNo new font was awarded today.`;
+    }
+
     let embed = new EmbedBuilder()
-      .setColor(client.bot.color)
-      .setAuthor({
-        name: `Daily`,
-        iconURL: interaction.user.displayAvatarURL({ dynamic: true }),
-      })
+      .setColor(`#FFCF81`)
+      .setAuthor({ name: `Daily`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
       .setDescription(
-        `You have received your daily \`${money}\` <:lapiscoin:994083759999701052>\n${text}`
+        `You have received your daily \`${money}\` <:koins:1275788858851721267>\n${text}`
       )
       .setTimestamp();
 
-    interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
 
     async function getStreak(user) {
       let oldStreak = user.streak;
@@ -73,13 +83,41 @@ module.exports = {
       }
 
       user.streak += 1;
-      user.streakTime = new Date(); // Set to the current date and time
+      user.streakTime = new Date();
 
       return {
         oldStreak,
         newStreak: user.streak,
         lostStreak: lost,
       };
+    }
+
+    async function giveRandomFont(user) {
+      const fonts = await Font.find({ onMarket: false });
+      if (fonts.length === 0) {
+        console.log('No fonts available.');
+        return null;
+      }
+
+      const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+      console.log('Random font selected:', randomFont);
+
+      if (!user.fonts) user.fonts = [];
+
+      const existingFont = user.fonts.find(f => f.name === randomFont.name);
+      
+      if (existingFont) {
+        existingFont.total += 1;
+      } else {
+        user.fonts.push({
+          name: randomFont.name,
+          total: 1,
+          used: 0
+        });
+      }
+
+      console.log('Font updated in user inventory:', randomFont.name);
+      return randomFont;
     }
   },
 };

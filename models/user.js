@@ -11,6 +11,13 @@ const Schema = mongoose.Schema({
     joined: String,
     streak: Number,
     streakTime: Date,
+    fonts: [
+        {
+          name: String,
+          total: Number, 
+          used: Number,  
+        }
+    ]
 })
 
 module.exports = mongoose.model('user', Schema)

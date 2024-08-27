@@ -1,10 +1,38 @@
-const { Client, EmbedBuilder, CommandInteraction, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { Client, EmbedBuilder, CommandInteraction, ApplicationCommandOptionType } = require('discord.js');
 
 module.exports = {
     name: "help",
     category: "info",
-    deferBypass: true,  
+    deferBypass: true,
     description: "Displays a menu of all commands or details for a specific command",
+    options: [
+        {
+            name: 'command',
+            type: ApplicationCommandOptionType.String,
+            description: 'The command to get details about',
+            required: false,
+            choices: [
+                { name: 'Drop', value: 'Drop' },
+                { name: 'Cooldown', value: 'Cooldown' },
+                { name: 'Gift', value: 'Gift' },
+                { name: 'Inventory-card', value: 'Inventory-card' },
+                { name: 'Lookup', value: 'Lookup' },
+                { name: 'Bless', value: 'Bless' },
+                { name: 'Daily', value: 'Daily' },
+                { name: 'Hunt', value: 'Hunt' },
+                { name: 'Give', value: 'Give' },
+                { name: 'Work', value: 'Work' },
+                { name: 'Balance', value: 'Balance' },
+                { name: 'Profile', value: 'Profile' },
+                { name: 'Looking-for', value: 'Looking-for' },
+                { name: 'Bio', value: 'Bio' },
+                { name: 'Favorite', value: 'Favorite' },
+                { name: 'Inventory-Font', value: 'Inventory-Font' },
+                { name: 'Apply-Font', value: 'Apply-Font' },
+                { name: 'Remove-Font', value: 'Remove-Font' }
+            ]
+        }
+    ],
     /**
      *
      * @param {Client} client
@@ -12,67 +40,51 @@ module.exports = {
      */
     run: async (client, interaction) => {
         const commandDescriptions = {
-            'Drop': 'Drops 3 cards choose one.',
-            'Cooldown': 'Check your cooldown.',
+            'Drop': 'Drops a set of 3 cards & you can claim one.',
+            'Cooldown': 'Check your commands cooldown.',
             'Gift': 'Gift a card to another user.',
             'Inventory-card': 'Displays your card inventory.',
             'Lookup': 'Looks up details of a specific card.',
             'Bless': 'Blesses your economy balance (and someone else too 🥰).',
             'Daily': 'Collect your daily reward.',
+            'Hunt': 'Drops a set of 2 random cards with 50% chance of getting it (or it runs away 🏃‍♂️).',
             'Give': 'Give some of your balance to another user.',
             'Work': 'Earn koins by working.',
             'Balance': 'Shows your current balance.',
             'Profile': 'Shows your profile details.',
             'Looking-for': 'Displays what you are looking for.',
             'Bio': 'Edit your bio information.',
-            'Favorite': 'Edit your favorite items or cards.'
+            'Favorite': 'Edit your favorite items or cards.',
+            'Inventory-Font': 'Displays your font inventory.',
+            'Apply-Font': 'Apply a font you have on a card.',
+            'Remove-Font': 'Remove a font from a card (sets to default).'
         };
 
-        // Create the main help menu embed
         const createHelpEmbed = () => new EmbedBuilder()
-            .setColor('#0099ff') // Set your desired color
+            .setColor('#739072')
+            .setAuthor({ name: `${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
             .setTitle('Help Menu')
-            .setDescription('Select a command to get more details:\nCard Commands: \`\`\`drop, cooldown, gift, inventory, lookup\`\`\`\nEconomy Commands: \`\`\`bless, daily, give, work, balance\`\`\`\nProfile Commands: \`\`\`profile, looking-for, bio, favorite\`\`\` ')
-            .setFooter({ text: 'Select a command from the dropdown menu for more info.' });
+            .setDescription(
+                'Here are the available commands:\n\n' +
+                '**Card Commands:**\n```drop, cooldown, gift, inventory, lookup, hunt```\n' +
+                '**Economy Commands:**\n```bless, daily, give, work, balance```\n' +
+                '**Profile Commands:**\n```profile, looking-for, bio, favorite```\n' +
+                '**Font Commands:**\n```inventory-font, apply-font, remove-font```'
+            )
+            .setFooter({ text: 'Use `/help [command]` to get more details about a specific command.' });
 
-        // Create the select menu
-        const createSelectMenu = () => new StringSelectMenuBuilder()
-            .setCustomId('command_select')
-            .setPlaceholder('Select a command')
-            .addOptions(Object.keys(commandDescriptions).map(cmd => ({
-                label: cmd,
-                value: cmd,
-                description: commandDescriptions[cmd]
-            })));
+        const command = interaction.options.getString('command');
 
-        const createActionRow = (selectMenu) => new ActionRowBuilder().addComponents(selectMenu);
+        if (command && commandDescriptions[command]) {
+            const commandEmbed = new EmbedBuilder()
+                .setColor('#0099ff')
+                .setTitle(`Command: ${command}`)
+                .setDescription(commandDescriptions[command])
+                .setFooter({ text: 'Use `/help [command]` to select another command.' });
 
-
-        let helpMessage = await interaction.reply({ embeds: [createHelpEmbed()], components: [createActionRow(createSelectMenu())], fetchReply: true });
-
-        const filter = i => i.customId === 'command_select' && i.user.id === interaction.user.id;
-        const collector = helpMessage.createMessageComponentCollector({ filter, time: 60000 }); // Extend time if needed
-
-        collector.on('collect', async (i) => {
-            const selectedCommand = i.values[0];
-
-            if (commandDescriptions[selectedCommand]) {
-                const commandEmbed = new EmbedBuilder()
-                    .setColor('#0099ff') 
-                    .setTitle(`Command: ${selectedCommand}`)
-                    .setDescription(commandDescriptions[selectedCommand])
-                    .setFooter({ text: 'Use the dropdown menu to select another command.' });
-
-                // Update the message with the command details and re-add the select menu
-                await i.update({ embeds: [commandEmbed], components: [createActionRow(createSelectMenu())] });
-            } else {
-                await i.update({ content: 'Invalid command selected.', components: [createActionRow(createSelectMenu())] });
-            }
-        });
-
-        collector.on('end', async () => {
-            // Edit the original message to indicate the help menu has expired
-            await helpMessage.edit({ components: [] });
-        });
+            await interaction.reply({ embeds: [commandEmbed] });
+        } else {
+            await interaction.reply({ embeds: [createHelpEmbed()] });
+        }
     }
 };

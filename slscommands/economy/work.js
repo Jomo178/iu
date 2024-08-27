@@ -42,7 +42,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setAuthor({ name: user.tag || 'Work', iconURL: user.displayAvatarURL({ dynamic: true }) })
             .setDescription(`${user.tag} worked as a **${job[job_done]}** at **${company[company_done]}** & earned \`${amount}\``)
-            .setColor('#303135')
+            .setColor('#A1EEBD')
             .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
 
         await interaction.followUp({ embeds: [embed] });

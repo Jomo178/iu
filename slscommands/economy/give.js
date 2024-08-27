@@ -40,7 +40,7 @@ module.exports = {
             const embed = new EmbedBuilder()
             .setAuthor({ name: interaction.user.tag || 'Transaction', iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
                 .setDescription(`Successfully transferred ${amount} ${currency} to ${targetUser}`)
-                .setColor('#303135')
+                .setColor('#FFCF81')
                 .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
 
             await interaction.followUp({ embeds: [embed] });

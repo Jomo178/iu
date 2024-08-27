@@ -47,7 +47,7 @@ module.exports = {
         const embed = new EmbedBuilder()
         .setAuthor({ name: user.tag || 'Bless', iconURL: user.displayAvatarURL({ dynamic: true }) })
         .setDescription(`You blessed ${mentioned} and yourself with ${amount} koins.`)
-        .setColor('#303135') 
+        .setColor('#E493B3') 
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
       
                 

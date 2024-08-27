@@ -1,19 +1,13 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 const cardBase = require("../../models/card.js");
+const userBase = require("../../models/user.js");
 const getRarity = require("../../functions/getRarity.js");
 
 module.exports = {
   name: "inventory-cards",
   description: "View the cards in your inventory",
   category: 'economy',
-  options: [
-    {
-      name: "user",
-      type: 6, 
-      description: "User to view the inventory of (leave blank for yourself)",
-      required: false,
-    },
-  ],
+  options: [{ type: 6, name: "user", description: "Whose inventory do you want to view?" }],
   /**
    *
    * @param {Client} client
@@ -21,9 +15,10 @@ module.exports = {
    */
   run: async (client, interaction) => {
     const player = interaction.options.getUser("user") || interaction.user;
+    const userexists = await userBase.findOne({ user: player.id });
 
-    if (!player) {
-        return await interaction.followUp({ content: '\`❌\` Mentioned user not found.', ephemeral: true });
+    if (!userexists) {
+        return interaction.followUp({ content: '`❌` The mentioned user does not exist!', ephemeral: true });
     }
 
     let allCards = await cardBase.find({ owner: player.id }).sort({ date: -1 }).exec();
@@ -35,8 +30,7 @@ module.exports = {
       });
     }
 
-    
-
+  
     const itemsPerPage = 10;
     let currentPage = 0;
     const totalPages = Math.ceil(allCards.length / itemsPerPage);
@@ -55,7 +49,7 @@ module.exports = {
           iconURL: player.displayAvatarURL({ dynamic: true }),
         })
         .setDescription(cardDetails)
-        .setColor("#2f3136")
+        .setColor("#AD88C6")
         .setFooter({ text: `Page ${page + 1} / ${totalPages} | Total Cards: ${allCards.length}` });
     };
 

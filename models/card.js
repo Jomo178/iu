@@ -10,8 +10,7 @@ const Schema = mongoose.Schema({
   issue: Number,
   code: String, 
   image: String,
-  star: String,
-  logo: String,          
+  font: String,
 
 });
 

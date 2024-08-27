@@ -1,6 +1,8 @@
 const { Client, Events, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, InteractionType } = require("discord.js");
 const userBase = require("../../models/user.js");
 const CommandUsage = require("../../models/commandusage.js");
+const fs = require('fs');
+const path = require('path');
 
 module.exports = async (client, interaction) => {
     if (interaction.isUserContextMenuCommand()) {
@@ -17,14 +19,15 @@ module.exports = async (client, interaction) => {
             await interaction.deferReply({ ephemeral: false }).catch(() => { });
         }
 
+        // Command usage tracking
         let commandUsage = await CommandUsage.findOne({ command: interaction.commandName });
         if (!commandUsage) {
-          commandUsage = new CommandUsage({ command: interaction.commandName, usageCount: 0 });
+            commandUsage = new CommandUsage({ command: interaction.commandName, usageCount: 0 });
         }
         commandUsage.usageCount += 1;
-        await commandUsage.save();    
+        await commandUsage.save();
 
-
+        // User info handling
         const userInfo = await userBase.findOne({ user: interaction.user.id });
 
         if (!userInfo) {
@@ -60,9 +63,9 @@ module.exports = async (client, interaction) => {
                 joined: new Date().toISOString()
             });
         
-        console.log(`Saving new user: ${interaction.user.id}`);
+            console.log(`Saving new user: ${interaction.user.id}`);
         
-        await newUser.save();
+            await newUser.save();
         }
         const args = [];
 
@@ -78,5 +81,9 @@ module.exports = async (client, interaction) => {
         interaction.member = interaction.guild.members.cache.get(interaction.user.id);
 
         cmd.run(client, interaction, args);
+
+        const logMessage = `${new Date().toISOString()} - Command: ${interaction.commandName} | User: ${interaction.user.tag} (${interaction.user.id}) | Server: ${interaction.guild?.name || 'DM'} (${interaction.guildId})`;
+
+        console.log(logMessage); 
     }
 }

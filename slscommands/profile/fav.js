@@ -1,12 +1,14 @@
-const { EmbedBuilder, AttachmentBuilder, ButtonBuilder, ActionRowBuilder, TextInputBuilder, InteractionCollector, ModalBuilder } = require("discord.js");
+const { Client, CommandInteraction, EmbedBuilder, AttachmentBuilder, ButtonBuilder, ActionRowBuilder, TextInputBuilder, InteractionCollector, ModalBuilder } = require("discord.js");
 const userBase = require("../../models/user.js");
+const cardBase = require("../../models/card.js");
 
 module.exports = {
     name: 'favorite',
     category: 'profile',
     description: 'Choose your favorite card',
+    deferBypass: true,
     options: [
-        { type: 3, name: "favorite", description: "Enter the card code you would like to favorite", required: true  }
+        { name: 'code', type: 3, description: 'Card code you want to favorite', required: true }
     ],
     /**
      *
@@ -15,22 +17,22 @@ module.exports = {
      * @param {String[]} args
      */
     run: async (client, interaction, args) => {
-
-        const user = interaction.options.getUser("user") ? interaction.options.getUser("user") : interaction.user;
-        const cardCode = interaction.options.getString('cardcode');
-        const card = await cardBase.findOne({ code: cardcode, user: user.id });
+        const cardCode = interaction.options.getString('code');
+        const card = await cardBase.findOne({ code: cardCode });
 
         if (!card) {
-            return await interaction.followUp({ content: '\`❌\` \`${cardCode}\` does not exist.', ephemeral: true });
+            return await interaction.reply({ content: `❌ \`${cardCode}\` does not exist.`, ephemeral: true });
         }
 
-        if (!card || card.owner !== user.id) {
-            return await interaction.followUp({ content: '\`❌\` \`${cardCode}\` does not belong to you! Try again with a card you own.', ephemeral: true });
+        if (card.owner !== interaction.user.id) {
+            return await interaction.reply({ content: `❌ \`${cardCode}\` does not belong to you! Try again with a card you own.`, ephemeral: true });
         }
 
-        await userBase.findOneAndUpdate({ user: user.id }, { favCard: cardCode, favCardImage: card.image },
+        await userBase.findOneAndUpdate(
+            { user: interaction.user.id },
+            { favCard: cardCode, favCardImage: card.image }
         );
 
-        await interaction.followUp({ content: "\`✅\` Your favorite card has now been set to \`${cardCode}\`"});
+        await interaction.reply({ content: `✅ Your favorite card has now been set to \`${cardCode}\`.` });
     }
 }
