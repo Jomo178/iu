@@ -131,8 +131,8 @@ module.exports = {
       }
       
       const attachmentHi = new AttachmentBuilder()
-          .setFile(await hi.encode('webp')) 
-          .setName('hi.webp');
+          .setFile(await hi.encode('png')) 
+          .setName('hi.png');
         
       let nextIssueNumber;
       try {
@@ -147,7 +147,7 @@ module.exports = {
           .setColor(`#FFC6C6`)
           .setAuthor({ name: `${interaction.user.tag} || Drop Claimed`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
           .setDescription(`<@${interaction.user.id}> has claimed \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
-          .setImage('attachment://hi.webp');
+          .setImage('attachment://hi.png');
   
       const session = await mongoose.startSession();
       session.startTransaction();

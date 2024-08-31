@@ -3,7 +3,7 @@ const Canvas = require("@napi-rs/canvas");
 const path = require('path');
 const userBase = require("../../models/user.js");
 const cardBase = require("../../models/card.js");
-const Font = require('../../models/fonts.js'); // Ensure this model exists
+const Font = require('../../models/fonts.js'); 
 
 module.exports = {
   name: 'profile',
@@ -62,7 +62,7 @@ module.exports = {
       const defaultFontSize = isBigFont ? 65 : 75;
       const smallerFontSize = isBigFont ? 55 : 60;
       const actFontSize = 30;
-      const actYOffset = isBigFont ? 5 : 0; // Adjust vertical position for act text
+      const actYOffset = isBigFont ? 5 : 0; 
     
       ctx.fillStyle = 'white'; 
       ctx.strokeStyle = 'black';
@@ -70,7 +70,6 @@ module.exports = {
   
       console.log(`Using font: ${fontFamily || 'default'}, Default font size: ${defaultFontSize}, Smaller font size: ${smallerFontSize}, Act font size: ${actFontSize}`);
   
-      // Draw card name
       if (cardName.length > 7) {
         ctx.font = `${smallerFontSize}px "${fontFamily || 'default'}"`;
         ctx.strokeText(cardName, 84, 731); 
@@ -107,8 +106,7 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL({ dynamic: true }) })
         .setDescription(description)
-        .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-        .setColor('#F6F7C4');
+        .setColor('#eea990');
 
       await interaction.followUp({ embeds: [embed] });
     }

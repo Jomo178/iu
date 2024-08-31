@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
 
-const Schema = mongoose.Schema({
+const CommandUsageSchema = new mongoose.Schema({
+  user: String,
+  server: String,
   command: String,
-  usageCount: Number,
-
+  usageCount: { type: Number, default: 1 },
+  date: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("commandusage", Schema);
+module.exports = mongoose.model("CommandUsage", CommandUsageSchema);

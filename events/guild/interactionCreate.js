@@ -3,6 +3,8 @@ const userBase = require("../../models/user.js");
 const CommandUsage = require("../../models/commandusage.js");
 const fs = require('fs');
 const path = require('path');
+const Font = require("../../models/fonts.js");
+
 
 module.exports = async (client, interaction) => {
     if (interaction.isUserContextMenuCommand()) {
@@ -20,38 +22,70 @@ module.exports = async (client, interaction) => {
         }
 
         // Command usage tracking
-        let commandUsage = await CommandUsage.findOne({ command: interaction.commandName });
-        if (!commandUsage) {
-            commandUsage = new CommandUsage({ command: interaction.commandName, usageCount: 0 });
+        let commandUsage = await CommandUsage.findOne({ 
+            user: interaction.user.id, 
+            server: interaction.guild.id, 
+            command: interaction.commandName 
+        });
+        
+        if (commandUsage) {
+            commandUsage.usageCount += 1;
+            commandUsage.date = Date.now();
+        } else {
+            commandUsage = new CommandUsage({
+                user: interaction.user.id,
+                server: interaction.guild.id,
+                command: interaction.commandName,
+                usageCount: 1,
+                date: Date.now()
+            });
         }
-        commandUsage.usageCount += 1;
+        
         await commandUsage.save();
 
+        if (interaction.guild.id !== '1265686888782626949') {
+            const row = new MessageActionRow()
+                .addComponents(
+                    new MessageButton()
+                        .setLabel('Join The Server')
+                        .setStyle('LINK')
+                        .setURL('https://discord.gg/delufe')
+                );
+        
+            await interaction.reply({ 
+                content: 'The Bot will be released to the public after the Beta Testing! Want to be the first ones to try it? Join the server.', 
+                components: [row], 
+                ephemeral: true 
+            });
+            return;
+        }        
+        
         // User info handling
         const userInfo = await userBase.findOne({ user: interaction.user.id });
 
         if (!userInfo) {
+            const fonts = await Font.find({ onMarket: false });
+            const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+    
             let embed = new EmbedBuilder()
-                .setTitle('👋 Welcome to the Uaenaverse Industry')
-                .setDescription(`Here begins your journey. Before starting, please read the terms below.
+                .setTitle('👋 Welcome to the Uaenaverse')
+                .setDescription(`Here begins your journey. You've received the following.
                 
-                :one: No alts.
-                :two: Crosstrading is prohibited.
-                :three: Do not abuse bugs.
-                :four: Be respectful of all players.
-                :five: No funneling.
-                
-                Breaking any of these terms will first lead to a permanent blacklist from the bot or a verbal warning based on the severity.`)
+                :one: 100 Koins 
+                :two: 5 Aenas
+                :three: ${randomFont.name} Font
+                :four: Invite to an amazing server 🔽
+                `)
                 .setColor('#303135');
-        
+    
             const joinButton = new ButtonBuilder()
                 .setLabel('Join the Uaenaverse Community Server')
                 .setStyle(ButtonStyle.Link)
                 .setURL('https://discord.gg/aQkUGvZmSu');
-        
+    
             const row = new ActionRowBuilder().addComponents(joinButton);
             await interaction.followUp({ embeds: [embed], components: [row] });
-        
+    
             const newUser = new userBase({
                 user: interaction.user.id,
                 balance: 100,
@@ -60,13 +94,19 @@ module.exports = async (client, interaction) => {
                 favCardImage: "",
                 lf: "Set this using /looking-for <message>",
                 bio: "Set this using /bio <message>",
-                joined: new Date().toISOString()
+                joined: new Date().toISOString(),
+                fonts: [{
+                    name: randomFont.name,
+                    total: 1,
+                    used: 0
+                }]
             });
-        
+    
             console.log(`Saving new user: ${interaction.user.id}`);
-        
+
             await newUser.save();
         }
+    
         const args = [];
 
         for (let option of interaction.options.data) {
