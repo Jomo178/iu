@@ -66,11 +66,10 @@ module.exports = {
       }
     }
 
-    // Define font sizes and adjustment based on whether the font is big or not
     const defaultFontSize = isBigFont ? 65 : 75;
     const smallerFontSize = isBigFont ? 55 : 60;
     const actFontSize = 30;
-    const actYOffset = isBigFont ? 5 : 0; // Adjust vertical position for act text
+    const actYOffset = isBigFont ? 5 : 0; 
 
     ctx.fillStyle = 'white'; 
     ctx.strokeStyle = 'black';
@@ -98,8 +97,8 @@ module.exports = {
     }
 
     const attachment = new AttachmentBuilder()
-      .setFile(await canvas.encode('webp')) 
-      .setName('lookup.webp');
+      .setFile(await canvas.encode('png')) 
+      .setName('lookup.png');
 
     const embed = new EmbedBuilder()
       .setAuthor({
@@ -110,7 +109,7 @@ module.exports = {
         `${user} searched for \n\`\`\`${cardCode}\`\`\`\n${description}`
       )
       .setColor("#F5E8DD")
-      .setImage('attachment://lookup.webp');
+      .setImage('attachment://lookup.png');
 
     await interaction.followUp({
       embeds: [embed],
