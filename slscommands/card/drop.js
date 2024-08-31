@@ -1,12 +1,11 @@
 const { CommandInteraction, Client, ActionRowBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require("discord.js");
 const mongoose = require('mongoose');
-const Users = require("../../models/user.js");
-const verifyCD = require("../../functions/verifyCooldown.js");
 const Card = require("../../models/card.js");
 const Canvas = require("@napi-rs/canvas");
 const path = require('path');
+const axios = require('axios');
+const { getNextIssueNumber } = require('../../utils/cardUtils');
 const getRarity = require("../../functions/getRarity.js");
-const { drawRandomCards, getNextIssueNumber } = require('../../utils/cardUtils');
 
 module.exports = {
   name: "drop",
@@ -20,33 +19,47 @@ module.exports = {
    * @param {String[]} args
    */
   run: async (client, interaction, args) => {
+    let cards;
+    try {
+      const response = await axios.get('https://iu-website.vercel.app/api/get/cards?amount=3');
+      cards = response.data;
+    } catch (error) {
+      console.error('Error fetching cards:', error);
+      return interaction.followUp({ content: 'Error fetching cards from the API.', ephemeral: true });
+    }
 
-    let verify = await verifyCD(client, interaction, "drop", 1800000); 
-    if (verify) return;
+    cards[2] = cards[1];
 
-    let cards = await drawRandomCards(3);
-
-    const canvas = Canvas.createCanvas(1800, 800); 
+    const canvas = Canvas.createCanvas(1800, 800);
     const ctx = canvas.getContext('2d');
-    
-    let c1 = await Canvas.loadImage(cards[0].image);
-    let c2 = await Canvas.loadImage(cards[1].image);
-    let c3 = await Canvas.loadImage(cards[2].image);
-    
-    ctx.drawImage(c1, 0, 0, 600, 800); 
-    ctx.drawImage(c2, 600, 0, 600, 800); 
-    ctx.drawImage(c3, 1200, 0, 600, 800); 
-    
-    Canvas.GlobalFonts.registerFromPath(path.join(__dirname, '../../fonts/Fjalla One.ttf'), 'Fjalla One');
-    const fontFamily = 'Fjalla One';
 
+    try {
+      const [c1, c2, c3] = await Promise.all([
+          Canvas.loadImage(cards[0].image),
+          Canvas.loadImage(cards[1].image),
+          Canvas.loadImage(cards[2].image)
+      ]);
+
+      ctx.drawImage(c1, 0, 0, 600, 800);
+      ctx.drawImage(c2, 600, 0, 600, 800);
+      ctx.drawImage(c3, 1200, 0, 600, 800);
+    } catch (error) {
+      console.error('Error loading or drawing images:', error);
+      return interaction.followUp({ content: 'Error processing card images.', ephemeral: true });
+    }
+
+    if (!global.fontRegistered) {
+      Canvas.GlobalFonts.registerFromPath(path.join(__dirname, '../../fonts/Fjalla One.ttf'), 'Fjalla One');
+      global.fontRegistered = true;
+    }
+    const fontFamily = 'Fjalla One';
     ctx.font = `24px "${fontFamily}"`;
-    ctx.fillStyle = '#ffffff'; 
+    ctx.fillStyle = '#ffffff';
 
     const buttons = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('card1').setLabel('1').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('card2').setLabel('2').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('card3').setLabel('3').setStyle(ButtonStyle.Primary)
+      new ButtonBuilder().setCustomId('card1').setLabel('1').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('card2').setLabel('2').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('card3').setLabel('3').setStyle(ButtonStyle.Primary)
     );
 
     const attachment = new AttachmentBuilder()
@@ -73,7 +86,7 @@ module.exports = {
 
     collector.on('collect', async i => {
       collector.stop();
-  
+
       let selectedCard;
       switch (i.customId) {
         case 'card1':
@@ -90,67 +103,68 @@ module.exports = {
           await i.update({ content: 'An error occurred while selecting the card.', components: [] });
           return;
       }
-  
+
       if (!selectedCard) {
         console.error('No card selected');
         await i.update({ content: 'No card was selected.', components: [] });
         return;
       }
-  
+
       const hi = Canvas.createCanvas(600, 800);
       const ctxHi = hi.getContext('2d');
 
-      let selectedCardImage = await Canvas.loadImage(selectedCard.image);
+      let selectedCardImage;
+      try {
+        selectedCardImage = await Canvas.loadImage(selectedCard.image);
+      } catch (error) {
+        console.error('Error loading selected card image:', error);
+        await i.update({ content: 'Error loading the selected card image.', components: [] });
+        return;
+      }
+
       ctxHi.drawImage(selectedCardImage, 0, 0, hi.width, hi.height);
 
       const defaultFontSize = 75;
       const smallerFontSize = 60;
       const actFontSize = 30;
-  
-      ctxHi.strokeStyle = 'black'; 
-      ctxHi.lineWidth = 6; 
-  
-      if (selectedCard.name.length > 7) {
-        ctxHi.font = `${smallerFontSize}px "${fontFamily}"`; 
-        ctxHi.fillStyle = 'white'; 
-        ctxHi.strokeText(selectedCard.name, 80, 735); 
-        ctxHi.fillText(selectedCard.name, 80, 735);
-        
-        ctxHi.font = `${actFontSize}px "${fontFamily}"`;
-        ctxHi.strokeText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize)); 
-        ctxHi.fillText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize)); 
-      } else {
-        ctxHi.font = `${defaultFontSize}px "${fontFamily}"`; 
-        ctxHi.fillStyle = 'white'; 
-        ctxHi.strokeText(selectedCard.name, 80, 735); 
-        ctxHi.fillText(selectedCard.name, 80, 735); 
 
-        ctxHi.font = `${actFontSize}px "${fontFamily}"`; 
-        ctxHi.strokeText(selectedCard.act, 80, 660); 
-        ctxHi.fillText(selectedCard.act, 80, 660);     
+      ctxHi.strokeStyle = 'black';
+      ctxHi.lineWidth = 6;
+
+      const drawText = (text, x, y, fontSize) => {
+        ctxHi.font = `${fontSize}px "${fontFamily}"`;
+        ctxHi.strokeText(text, x, y);
+        ctxHi.fillText(text, x, y);
+      };
+
+      if (selectedCard.name.length > 7) {
+        drawText(selectedCard.name, 80, 735, smallerFontSize);
+        drawText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize), actFontSize);
+      } else {
+        drawText(selectedCard.name, 80, 735, defaultFontSize);
+        drawText(selectedCard.act, 80, 660, actFontSize);
       }
-      
+
       const attachmentHi = new AttachmentBuilder()
-          .setFile(await hi.encode('png')) 
-          .setName('hi.png');
-        
+        .setFile(await hi.encode('png'))
+        .setName('hi.png');
+
       let nextIssueNumber;
       try {
-        nextIssueNumber = await getNextIssueNumber(selectedCard.name);  
+        nextIssueNumber = await getNextIssueNumber(selectedCard.name);
       } catch (error) {
         console.error('Error getting next issue number:', error);
         await i.update({ content: 'There was an error collecting your card.', components: [] });
         return;
       }
-  
+
       const embedHi = new EmbedBuilder()
-          .setColor(`#FFC6C6`)
-          .setAuthor({ name: `${interaction.user.tag} || Drop Claimed`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
-          .setDescription(`<@${interaction.user.id}> has claimed \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
-          .setImage('attachment://hi.png');
-  
+        .setColor(`#FFC6C6`)
+        .setAuthor({ name: `${interaction.user.tag} || Drop Claimed`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
+        .setDescription(`<@${interaction.user.id}> has claimed \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
+        .setImage('attachment://hi.png');
+
       const session = await mongoose.startSession();
-      session.startTransaction();
       try {
         const newCard = new Card({
           name: selectedCard.name,
@@ -160,22 +174,20 @@ module.exports = {
           owner: interaction.user.id,
           date: new Date().toISOString(),
           issue: nextIssueNumber,
-          code: `${selectedCard.code}#${nextIssueNumber}`, 
+          code: `${selectedCard.code}#${nextIssueNumber}`,
           image: selectedCard.image,
-          font: fontFamily  
+          font: fontFamily
         });
-  
+
         await newCard.save({ session });
-        await session.commitTransaction();
-  
+
         await i.update({
           embeds: [embedHi],
           components: [],
           files: [attachmentHi],
         });
       } catch (error) {
-        await session.abortTransaction();
-        console.error(error);
+        console.error('Error saving card:', error);
         await i.update({ content: 'There was an error collecting your card.', components: [] });
       } finally {
         session.endSession();
