@@ -4,6 +4,7 @@ const Card = require("../../models/card.js");
 const Canvas = require("@napi-rs/canvas");
 const path = require('path');
 const axios = require('axios');
+const Font = require("../../models/fonts.js")
 const { getNextIssueNumber } = require('../../utils/cardUtils');
 const getRarity = require("../../functions/getRarity.js");
 
@@ -27,8 +28,6 @@ module.exports = {
       console.error('Error fetching cards:', error);
       return interaction.followUp({ content: 'Error fetching cards from the API.', ephemeral: true });
     }
-
-    cards[2] = cards[1];
 
     const canvas = Canvas.createCanvas(1800, 800);
     const ctx = canvas.getContext('2d');
@@ -124,30 +123,52 @@ module.exports = {
 
       ctxHi.drawImage(selectedCardImage, 0, 0, hi.width, hi.height);
 
-      const defaultFontSize = 75;
-      const smallerFontSize = 60;
-      const actFontSize = 30;
+      let isBigFont = false;
+      if (fontFamily) {
+        try {
+          const font = await Font.findOne({ name: fontFamily });
+          if (font) {
+            Canvas.GlobalFonts.registerFromPath(path.join(__dirname, `../../fonts/${fontFamily}.ttf`), fontFamily);
+            isBigFont = font.isBig;
+          } else {
+            console.warn(`Font ${fontFamily} not found.`);
+          }
+        } catch (error) {
+          console.error('Error fetching font details:', error);
+        }
+      }
 
+      const defaultFontSize = isBigFont ? 65 : 75;
+      const smallerFontSize = isBigFont ? 55 : 60;
+      const actFontSize = 30;
+      const actYOffset = isBigFont ? 5 : 0;
+
+      ctxHi.fillStyle = 'white'; 
       ctxHi.strokeStyle = 'black';
       ctxHi.lineWidth = 6;
 
-      const drawText = (text, x, y, fontSize) => {
-        ctxHi.font = `${fontSize}px "${fontFamily}"`;
-        ctxHi.strokeText(text, x, y);
-        ctxHi.fillText(text, x, y);
-      };
-
+      // Draw card name
       if (selectedCard.name.length > 7) {
-        drawText(selectedCard.name, 80, 735, smallerFontSize);
-        drawText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize), actFontSize);
-      } else {
-        drawText(selectedCard.name, 80, 735, defaultFontSize);
-        drawText(selectedCard.act, 80, 660, actFontSize);
-      }
+        ctxHi.font = `${smallerFontSize}px "${fontFamily || 'default'}"`; 
+        ctxHi.strokeText(selectedCard.name, 84, 731); 
+        ctxHi.fillText(selectedCard.name, 84, 731); 
 
+        ctxHi.font = `${actFontSize}px "${fontFamily || 'default'}"`;
+        ctxHi.strokeText(selectedCard.act, 84, 731 - (smallerFontSize - actYOffset));
+        ctxHi.fillText(selectedCard.act, 84, 731 - (smallerFontSize - actYOffset)); 
+      } else {
+        ctxHi.font = `${defaultFontSize}px "${fontFamily || 'default'}"`; 
+        ctxHi.strokeText(selectedCard.name, 84, 731);
+        ctxHi.fillText(selectedCard.name, 84, 731); 
+
+        ctxHi.font = `${actFontSize}px "${fontFamily || 'default'}"`;
+        ctxHi.strokeText(selectedCard.act, 84, 731 - (defaultFontSize - actYOffset)); 
+        ctxHi.fillText(selectedCard.act, 84, 731 - (defaultFontSize - actYOffset)); 
+      }
+      
       const attachmentHi = new AttachmentBuilder()
-        .setFile(await hi.encode('png'))
-        .setName('hi.png');
+          .setFile(await hi.encode('png')) 
+          .setName('hi.png');
 
       let nextIssueNumber;
       try {
@@ -161,15 +182,15 @@ module.exports = {
       const embedHi = new EmbedBuilder()
         .setColor(`#FFC6C6`)
         .setAuthor({ name: `${interaction.user.tag} || Drop Claimed`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
-        .setDescription(`<@${interaction.user.id}> has claimed \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
-        .setImage('attachment://hi.png');
+        .setDescription(`<@${interaction.user.id}> has claimed \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.rarity)}`)
+        .setImage('attachment://hi.png'); // Match the file name here with the attachment name
 
       const session = await mongoose.startSession();
       try {
         const newCard = new Card({
           name: selectedCard.name,
           group: selectedCard.group,
-          rarity: selectedCard.value,
+          rarity: selectedCard.rarity,
           act: selectedCard.act,
           owner: interaction.user.id,
           date: new Date().toISOString(),

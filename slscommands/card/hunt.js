@@ -7,43 +7,47 @@ const Canvas = require("@napi-rs/canvas");
 const path = require('path');
 const getRarity = require("../../functions/getRarity.js");
 const { drawRandomCards, getNextIssueNumber } = require('../../utils/cardUtils');
+const axios = require('axios');
+const Font = require("../../models/fonts.js");
 
 module.exports = {
   name: "hunt",
   category: "card",
   description: "Hunt for 2 cards and choose 1 (with blurred image)",
   permissions: [""],
-  /**
-   *
-   * @param {Client} client
-   * @param {CommandInteraction} interaction
-   * @param {String[]} args
-   */
   run: async (client, interaction, args) => {
-    let verify = await verifyCD(client, interaction, "hunt", 3600000); 
-    if (verify) return;
+    let cards;
 
-    let cards = await drawRandomCards(2);
+    try {
+      const response = await axios.get('https://iu-website.vercel.app/api/get/cards?amount=all');
+      cards = response.data;
+    } catch (error) {
+      return interaction.followUp({ content: 'Error fetching cards from the API.', ephemeral: true });
+    }
 
-    const canvas = Canvas.createCanvas(1200, 800); 
+    if (!cards[0] || !cards[1]) {
+      return interaction.followUp({ content: 'Not enough cards available for the hunt.', ephemeral: true });
+    }
+
+    const [c1, c2] = await Promise.all([
+      Canvas.loadImage(cards[0].image),
+      Canvas.loadImage(cards[1].image),
+    ]);
+    const canvas = Canvas.createCanvas(1200, 800);
     const ctx = canvas.getContext('2d');
-    
-    let c1 = await Canvas.loadImage(cards[0].image);
-    let c2 = await Canvas.loadImage(cards[1].image);
 
-    ctx.filter = 'blur(13px)'; 
-    ctx.drawImage(c1, 0, 0, 600, 800); 
-    ctx.drawImage(c2, 600, 0, 600, 800); 
-    
-    Canvas.GlobalFonts.registerFromPath(path.join(__dirname, '../../fonts/Fjalla One.ttf'), 'Fjalla One');
+    ctx.filter = 'blur(13px)';
+    ctx.drawImage(c1, 0, 0, 600, 800);
+    ctx.drawImage(c2, 600, 0, 600, 800);
+
     const fontFamily = 'Fjalla One';
-
-    ctx.font = `24px "${fontFamily}"`;
-    ctx.fillStyle = '#ffffff'; 
+    if (!Canvas.GlobalFonts.has(fontFamily)) {
+      Canvas.GlobalFonts.registerFromPath(path.join(__dirname, '../../fonts/Fjalla One.ttf'), fontFamily);
+    }
 
     const buttons = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId('card1').setLabel('1').setStyle(ButtonStyle.Primary),
-        new ButtonBuilder().setCustomId('card2').setLabel('2').setStyle(ButtonStyle.Primary)
+      new ButtonBuilder().setCustomId('card1').setLabel('1').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId('card2').setLabel('2').setStyle(ButtonStyle.Primary)
     );
 
     const attachment = new AttachmentBuilder()
@@ -70,29 +74,16 @@ module.exports = {
 
     collector.on('collect', async i => {
       collector.stop();
-  
-      let selectedCard;
-      switch (i.customId) {
-        case 'card1':
-          selectedCard = cards[0];
-          break;
-        case 'card2':
-          selectedCard = cards[1];
-          break;
-        default:
-          console.error('Invalid customId:', i.customId);
-          await i.update({ content: 'An error occurred while selecting the card.', components: [] });
-          return;
-      }
-  
+
+      let selectedCard = i.customId === 'card1' ? cards[0] : cards[1];
+
       if (!selectedCard) {
-        console.error('No card selected');
         await i.update({ content: 'No card was selected.', components: [] });
         return;
       }
-  
+
       const captureChance = Math.random();
-      if (captureChance < 0.5) { 
+      if (captureChance < 0.5) {
         const escapeEmbed = new EmbedBuilder()
           .setColor('#86AB89')
           .setAuthor({
@@ -102,92 +93,89 @@ module.exports = {
           .setDescription('The card has run away!')
           .setImage('https://c.tenor.com/3RG1hxPfO8cAAAAC/tenor.gif');
         
-        await i.update({ embeds: [escapeEmbed], components: [], files: []  });
+        await i.update({ embeds: [escapeEmbed], components: [], files: [] });
         return;
       }
 
       const hi = Canvas.createCanvas(600, 800);
       const ctxHi = hi.getContext('2d');
 
-      let selectedCardImage = await Canvas.loadImage(selectedCard.image);
+      const selectedCardImage = await Canvas.loadImage(selectedCard.image);
       ctxHi.drawImage(selectedCardImage, 0, 0, hi.width, hi.height);
 
-      const defaultFontSize = 80;
-      const smallerFontSize = 65;
-      const actFontSize = 35;
-  
-      if (selectedCard.name.length > 7) {
-        ctxHi.font = `${smallerFontSize}px "${fontFamily}"`; 
-        ctxHi.fillStyle = 'white'; 
-        ctxHi.fillText(selectedCard.name, 80, 735);
-        
-        ctxHi.font = `${actFontSize}px "${fontFamily}"`;
-        ctxHi.fillText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize));
-      } else {
-        ctxHi.font = `${defaultFontSize}px "${fontFamily}"`; 
-        ctxHi.fillStyle = 'white'; 
-        ctxHi.fillText(selectedCard.name, 80, 735); 
-
-        ctxHi.font = `${actFontSize}px "${fontFamily}"`; 
-        ctxHi.fillText(selectedCard.act, 80, 660);     
+      let font;
+      if (fontFamily) {
+        font = await Font.findOne({ name: fontFamily }).lean().exec();
       }
-      
+
+      const isBigFont = font?.isBig || false;
+      const defaultFontSize = isBigFont ? 65 : 75;
+      const smallerFontSize = isBigFont ? 55 : 60;
+      const actFontSize = 30;
+      const actYOffset = isBigFont ? 5 : 0;
+
+      ctxHi.fillStyle = 'white';
+      ctxHi.strokeStyle = 'black';
+      ctxHi.lineWidth = 6;
+
+      const drawText = (text, x, y, fontSize) => {
+        ctxHi.font = `${fontSize}px "${fontFamily || 'default'}"`;
+        ctxHi.strokeText(text, x, y);
+        ctxHi.fillText(text, x, y);
+      };
+
+      if (selectedCard.name.length > 7) {
+        drawText(selectedCard.name, 84, 731, smallerFontSize);
+        drawText(selectedCard.act, 84, 731 - (smallerFontSize - actYOffset), actFontSize);
+      } else {
+        drawText(selectedCard.name, 84, 731, defaultFontSize);
+        drawText(selectedCard.act, 84, 731 - (defaultFontSize - actYOffset), actFontSize);
+      }
+
       const attachmentHi = new AttachmentBuilder()
-          .setFile(await hi.encode('webp')) 
-          .setName('hi.webp');
-        
+        .setFile(await hi.encode('webp'))
+        .setName('hi.webp');
+
       let nextIssueNumber;
       try {
-        nextIssueNumber = await getNextIssueNumber(selectedCard.name);  
+        nextIssueNumber = await getNextIssueNumber(selectedCard.name);
       } catch (error) {
-        console.error('Error getting next issue number:', error);
         await i.update({ content: 'There was an error collecting your card.', components: [] });
         return;
       }
-  
+
       const embedHi = new EmbedBuilder()
-          .setColor(`#CBE2B5`)
-          .setAuthor({ name: `${interaction.user.tag} || Hunt Success`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
-          .setDescription(`<@${interaction.user.id}> has successfully hunted \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
-          .setImage('attachment://hi.webp');
-  
-      const session = await mongoose.startSession();
-      session.startTransaction();
+        .setColor(`#CBE2B5`)
+        .setAuthor({ name: `${interaction.user.tag} || Hunt Success`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
+        .setDescription(`<@${interaction.user.id}> has successfully hunted \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${selectedCard.rarity}`)
+        .setImage('attachment://hi.webp');
+
       try {
-        const newCard = new Card({
+        await Card.create({
           name: selectedCard.name,
           group: selectedCard.group,
-          rarity: selectedCard.value,
           act: selectedCard.act,
-          owner: interaction.user.id,
-          date: new Date().toISOString(),
-          issue: nextIssueNumber,
-          code: `${selectedCard.code}#${nextIssueNumber}`, 
+          code: `${selectedCard.code}#${nextIssueNumber}`,
           image: selectedCard.image,
-          font: fontFamily  
+          owner: interaction.user.id,
+          font: fontFamily,
+          rarity: selectedCard.rarity,
         });
-  
-        await newCard.save({ session });
-        await session.commitTransaction();
-  
+
         await i.update({
           embeds: [embedHi],
           components: [],
           files: [attachmentHi],
         });
       } catch (error) {
-        await session.abortTransaction();
-        console.error(error);
         await i.update({ content: 'There was an error collecting your card.', components: [] });
-      } finally {
-        session.endSession();
       }
     });
 
     collector.on('end', collected => {
       if (collected.size === 0) {
-        interaction.editReply({ content: 'You did not select a card in time.', components: [] });
+        interaction.editReply({ content: 'You took too long to choose a card! The hunt has ended.', components: [] });
       }
     });
-  }
+  },
 };

@@ -3,7 +3,7 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const config = require("./config.json");
 
-mongoose.connect(``, {
+mongoose.connect("", {
     dbName: "IU",
 });
 

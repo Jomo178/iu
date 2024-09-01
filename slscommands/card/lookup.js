@@ -12,16 +12,11 @@ module.exports = {
   options: [
     { name: 'code', type: 3, description: 'Card code you want to search up', required: true }
   ],
-  /**
-   *
-   * @param {Client} client
-   * @param {CommandInteraction} interaction
-   * @param {String[]} args
-   */
   run: async (client, interaction, args) => {
     const user = interaction.user;
     const cardCode = interaction.options.getString("code");
-    const lookup = await cardBase.findOne({ code: cardCode });
+
+    const lookup = await cardBase.findOne({ code: cardCode }).lean().exec();
 
     if (!lookup) {
       return await interaction.followUp({
@@ -30,90 +25,71 @@ module.exports = {
       });
     }
 
-    const { name: cardName, act: cardAct, rarity: cardRarity, owner: cardOwner, image: cardImage, font: fontFamily } = lookup;
+    const { name: cardName, act: cardAct, rarity: cardRarity, owner: cardOwner, image: cardImage, font: fontFamily, date } = lookup;
 
-    let createdDate = new Date(lookup.date);
     let createdTimestamp = "N/A";
-    if (!isNaN(createdDate.getTime())) {
-      createdTimestamp = Math.floor(createdDate.getTime() / 1000);
+    if (date) {
+      createdTimestamp = Math.floor(new Date(date).getTime() / 1000);
     }
 
     const description = [
       `**Name:** ${cardName}`,
       `**Act:** ${cardAct}`,
-      `**Rarity:** ${getRarity(cardRarity)}`,
+      `**Rarity:** ${getRarity(Number(cardRarity))}`,
       `**Owner:** <@${cardOwner}>`,
-      `**Issued:** ${
-        createdTimestamp === "N/A" ? "N/A" : `<t:${createdTimestamp}:F>`
-      }`,
+      `**Issued:** ${createdTimestamp === "N/A" ? "N/A" : `<t:${createdTimestamp}:F>`}`,
     ].join("\n");
 
     const canvas = Canvas.createCanvas(600, 800);
     const ctx = canvas.getContext('2d');
 
-    let cardImageLoaded = await Canvas.loadImage(cardImage);
+    const [cardImageLoaded, font] = await Promise.all([
+      Canvas.loadImage(cardImage),
+      fontFamily ? Font.findOne({ name: fontFamily }).lean().exec() : Promise.resolve(null)
+    ]);
+
     ctx.drawImage(cardImageLoaded, 0, 0, canvas.width, canvas.height);
 
     let isBigFont = false;
 
-    if (fontFamily) {
-      const font = await Font.findOne({ name: fontFamily });
-      if (font) {
-        Canvas.GlobalFonts.registerFromPath(path.join(__dirname, `../../fonts/${fontFamily}.ttf`), fontFamily);
-        isBigFont = font.isBig;
-      } else {
-        console.warn(`Font ${fontFamily} not found.`);
-      }
+    if (font) {
+      Canvas.GlobalFonts.registerFromPath(path.join(__dirname, `../../fonts/${fontFamily}.ttf`), fontFamily);
+      isBigFont = font.isBig;
     }
 
     const defaultFontSize = isBigFont ? 65 : 75;
     const smallerFontSize = isBigFont ? 55 : 60;
     const actFontSize = 30;
-    const actYOffset = isBigFont ? 5 : 0; 
+    const actYOffset = isBigFont ? 5 : 0;
 
-    ctx.fillStyle = 'white'; 
+    ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 6;
 
-    console.log(`Using font: ${fontFamily || 'default'}, Default font size: ${defaultFontSize}, Smaller font size: ${smallerFontSize}, Act font size: ${actFontSize}`);
+    const drawText = (text, x, y, fontSize) => {
+      ctx.font = `${fontSize}px "${fontFamily || 'default'}"`;
+      ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+    };
 
-    // Draw card name
     if (cardName.length > 7) {
-      ctx.font = `${smallerFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardName, 84, 731); 
-      ctx.fillText(cardName, 84, 731); 
-
-      ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardAct, 84, 731 - (smallerFontSize - actYOffset));
-      ctx.fillText(cardAct, 84, 731 - (smallerFontSize - actYOffset)); 
+      drawText(cardName, 84, 731, smallerFontSize);
+      drawText(cardAct, 84, 731 - (smallerFontSize - actYOffset), actFontSize);
     } else {
-      ctx.font = `${defaultFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardName, 84, 731);
-      ctx.fillText(cardName, 84, 731); 
-
-      ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
-      ctx.fillText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
+      drawText(cardName, 84, 731, defaultFontSize);
+      drawText(cardAct, 84, 731 - (defaultFontSize - actYOffset), actFontSize);
     }
 
     const attachment = new AttachmentBuilder()
-      .setFile(await canvas.encode('png')) 
+      .setFile(await canvas.encode('webp'))
       .setName('lookup.png');
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: user.tag || "Lookup",
-        iconURL: user.displayAvatarURL({ dynamic: true }),
-      })
-      .setDescription(
-        `${user} searched for \n\`\`\`${cardCode}\`\`\`\n${description}`
-      )
+      .setAuthor({ name: user.tag || "Lookup", iconURL: user.displayAvatarURL({ dynamic: true }) })
+      .setDescription(`${user} searched for \n\`\`\`${cardCode}\`\`\`\n${description}`)
       .setColor("#F5E8DD")
       .setImage('attachment://lookup.png');
 
-    await interaction.followUp({
-      embeds: [embed],
-      files: [attachment],
-    });
+    await interaction.followUp({ embeds: [embed], files: [attachment] });
   },
 };
