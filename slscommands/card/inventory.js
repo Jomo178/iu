@@ -18,13 +18,13 @@ module.exports = {
     const userexists = await userBase.findOne({ user: player.id });
 
     if (!userexists) {
-        return interaction.followUp({ content: '`❌` The mentioned user does not exist!', ephemeral: true });
+        return interaction.editReply({ content: '`❌` The mentioned user does not exist!', ephemeral: true });
     }
 
     let allCards = await cardBase.find({ owner: player.id }).sort({ date: -1 }).exec();
 
     if (allCards.length === 0) {
-      return interaction.followUp({
+      return interaction.editReply({
         content: `${player === interaction.user ? "You haven't" : "This user hasn't"} collected any cards yet.`,
         ephemeral: true,
       });
@@ -79,7 +79,7 @@ module.exports = {
     ];
 
     const initialEmbed = generateEmbed(currentPage);
-    const message = await interaction.followUp({ embeds: [initialEmbed], components: components() });
+    const message = await interaction.editReply({ embeds: [initialEmbed], components: components() });
 
     const collector = message.createMessageComponentCollector({ time: 30000 });
 

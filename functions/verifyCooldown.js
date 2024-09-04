@@ -11,7 +11,7 @@ module.exports = async function(client, message, command, time){
         .setDescription(`The \`${command}\` command is on a cooldown for <t:${cd.unixTime}:R>.`)
     
         if(!cd.ready){
-            message.followUp({embeds: [embed]});
+            message.editReply({embeds: [embed]});
     
             return true;
         } 

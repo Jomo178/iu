@@ -45,6 +45,6 @@ module.exports = {
             .setColor('#A1EEBD')
             .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
 
-        await interaction.followUp({ embeds: [embed] });
+        await interaction.editReply({ embeds: [embed] });
     }
 };

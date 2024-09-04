@@ -21,11 +21,11 @@ module.exports = {
         const bio = interaction.options.getString("bio");
 
         if (bio.length > 150) {
-            await interaction.followUp({ content: "\`❌\` Your bio must NOT be more than 150 characters.", ephemeral: true });
+            await interaction.editReply({ content: "\`❌\` Your bio must NOT be more than 150 characters.", ephemeral: true });
             return;
         }
 
         await userBase.findOneAndUpdate({ user: user.id }, { bio: bio });
-        await interaction.followUp({ content: "\`✅\` Your bio has been updated.", ephemeral: true });
+        await interaction.editReply({ content: "\`✅\` Your bio has been updated.", ephemeral: true });
     }
 }

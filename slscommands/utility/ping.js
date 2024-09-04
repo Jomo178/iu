@@ -12,6 +12,6 @@ module.exports = {
      */
     run: async (client, interaction, args) => {
 
-        await interaction.followUp("Pong!")
+        await interaction.editReply("Pong!")
     }
 }

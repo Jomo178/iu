@@ -3,7 +3,9 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const config = require("./config.json");
 
-mongoose.connect(`mongodb+srv://root:0000@cluster0.9gaccvj.mongodb.net/`);
+mongoose.connect(`mongodb://lapisDevs:LAPISISCOOL@149.28.192.107:27017`, {
+    dbName: "IU",
+});
 
 const client = new Client({
     intents: [

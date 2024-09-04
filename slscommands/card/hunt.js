@@ -102,7 +102,7 @@ module.exports = {
           .setDescription('The card has run away!')
           .setImage('https://c.tenor.com/3RG1hxPfO8cAAAAC/tenor.gif');
         
-        await i.update({ embeds: [escapeEmbed], components: [], files: []  });
+        await i.update({ embeds: [escapeEmbed], components: [], files: [] });
         return;
       }
 
@@ -116,19 +116,26 @@ module.exports = {
       const smallerFontSize = 65;
       const actFontSize = 35;
   
+      ctxHi.strokeStyle = 'black'; 
+      ctxHi.lineWidth = 6; 
+  
       if (selectedCard.name.length > 7) {
         ctxHi.font = `${smallerFontSize}px "${fontFamily}"`; 
         ctxHi.fillStyle = 'white'; 
+        ctxHi.strokeText(selectedCard.name, 80, 735); 
         ctxHi.fillText(selectedCard.name, 80, 735);
         
         ctxHi.font = `${actFontSize}px "${fontFamily}"`;
+        ctxHi.strokeText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize));
         ctxHi.fillText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize));
       } else {
         ctxHi.font = `${defaultFontSize}px "${fontFamily}"`; 
         ctxHi.fillStyle = 'white'; 
+        ctxHi.strokeText(selectedCard.name, 80, 735); 
         ctxHi.fillText(selectedCard.name, 80, 735); 
 
         ctxHi.font = `${actFontSize}px "${fontFamily}"`; 
+        ctxHi.strokeText(selectedCard.act, 80, 660); 
         ctxHi.fillText(selectedCard.act, 80, 660);     
       }
       
@@ -151,13 +158,11 @@ module.exports = {
           .setDescription(`<@${interaction.user.id}> has successfully hunted \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
           .setImage('attachment://hi.webp');
   
-      const session = await mongoose.startSession();
-      session.startTransaction();
       try {
         const newCard = new Card({
           name: selectedCard.name,
           group: selectedCard.group,
-          rarity: selectedCard.value,
+          rarity: selectedCard.value, // Using `rarity` field instead of `value`
           act: selectedCard.act,
           owner: interaction.user.id,
           date: new Date().toISOString(),
@@ -167,8 +172,7 @@ module.exports = {
           font: fontFamily  
         });
   
-        await newCard.save({ session });
-        await session.commitTransaction();
+        await newCard.save(); // Save without transaction
   
         await i.update({
           embeds: [embedHi],
@@ -176,11 +180,8 @@ module.exports = {
           files: [attachmentHi],
         });
       } catch (error) {
-        await session.abortTransaction();
         console.error(error);
         await i.update({ content: 'There was an error collecting your card.', components: [] });
-      } finally {
-        session.endSession();
       }
     });
 

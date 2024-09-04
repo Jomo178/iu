@@ -23,7 +23,7 @@ module.exports = {
 
 
         if (mentioned.id === user.id) {
-            return await interaction.followUp({ content: '`❌` You cannot bless yourself.', ephemeral: true });
+            return await interaction.editReply({ content: '`❌` You cannot bless yourself.', ephemeral: true });
         }
 
 
@@ -31,7 +31,7 @@ module.exports = {
         const mentionedUser = await userBase.findOne({ user: mentioned.id });
 
         if (!mentionedUser) {
-            return await interaction.followUp({ content: '\`❌\` User mentioned not found.', ephemeral: true });
+            return await interaction.editReply({ content: '\`❌\` User mentioned not found.', ephemeral: true });
         }
 
         let verify = await verifyCD(client, interaction, "bless", 2700000); 
@@ -51,7 +51,7 @@ module.exports = {
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
       
                 
-      await interaction.followUp({ embeds: [embed] })
+      await interaction.editReply({ embeds: [embed] })
 
   }
 }

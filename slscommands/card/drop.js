@@ -149,8 +149,6 @@ module.exports = {
           .setDescription(`<@${interaction.user.id}> has claimed \`${selectedCard.code}#${nextIssueNumber}\` **${selectedCard.group}** __${selectedCard.name}__ ${getRarity(selectedCard.value)}`)
           .setImage('attachment://hi.png');
   
-      const session = await mongoose.startSession();
-      session.startTransaction();
       try {
         const newCard = new Card({
           name: selectedCard.name,
@@ -164,9 +162,8 @@ module.exports = {
           image: selectedCard.image,
           font: fontFamily  
         });
-  
-        await newCard.save({ session });
-        await session.commitTransaction();
+
+        await newCard.save();
   
         await i.update({
           embeds: [embedHi],
@@ -174,11 +171,8 @@ module.exports = {
           files: [attachmentHi],
         });
       } catch (error) {
-        await session.abortTransaction();
         console.error(error);
         await i.update({ content: 'There was an error collecting your card.', components: [] });
-      } finally {
-        session.endSession();
       }
     });
 

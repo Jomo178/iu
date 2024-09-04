@@ -13,10 +13,10 @@ module.exports = {
      */
     run: async (client, interaction) => {
         const user = await userBase.findOne({ user: interaction.user.id });
-        if (!user) return await interaction.followUp({ content: 'User not found.', ephemeral: true });
+        if (!user) return await interaction.editReply({ content: 'User not found.', ephemeral: true });
 
         if (!user.fonts || user.fonts.length === 0) {
-            return await interaction.followUp({ content: 'You have no fonts in your inventory.', ephemeral: true });
+            return await interaction.editReply({ content: 'You have no fonts in your inventory.', ephemeral: true });
         }
 
         const fontMap = new Map();
@@ -40,6 +40,6 @@ module.exports = {
             .setDescription(fontDescriptions || 'No fonts found in inventory.')
             .setTimestamp();
 
-        await interaction.followUp({ embeds: [embed] });
+        await interaction.editReply({ embeds: [embed] });
     }
 };
