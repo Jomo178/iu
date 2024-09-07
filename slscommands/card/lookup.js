@@ -24,7 +24,7 @@ module.exports = {
     const lookup = await cardBase.findOne({ code: cardCode });
 
     if (!lookup) {
-      return await interaction.followUp({
+      return await interaction.editReply({
         content: "`❌` This card does not exist in the database.",
         ephemeral: true,
       });
@@ -111,7 +111,7 @@ module.exports = {
       .setColor("#F5E8DD")
       .setImage('attachment://lookup.png');
 
-    await interaction.followUp({
+    await interaction.editReply({
       embeds: [embed],
       files: [attachment],
     });

@@ -1,6 +1,7 @@
 const { Client, CommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 const userBase = require("../../models/user.js");
 const cardModel = require("../../models/card.js");
+const Font = require('../../models/fonts.js'); // Import the Font model
 const getRarity = require("../../functions/getRarity.js");
 
 module.exports = {
@@ -49,6 +50,21 @@ module.exports = {
             });
         }
 
+        // Handle font check and update
+        const fontName = card.font;
+        const user = await userBase.findOne({ user: interaction.user.id });
+        if (user && fontName && fontName !== 'Fjalla One') {
+            const font = user.fonts.find(f => f.name === fontName);
+            if (font) {
+                font.used -= 1;
+                await user.save();
+            }
+
+            // Update card font to 'Fjalla One'
+            card.font = 'Fjalla One';
+            await card.save();
+        }
+
         const confirmationEmbed = new EmbedBuilder()
             .setAuthor({ name: `${interaction.user.tag} — Confirm Gift`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
             .setDescription(`Are you sure you want to gift \`${card.code}\` **${card.name}** \`${getRarity(card.rarity)}\` to <@${recipient.id}>?`)
@@ -90,7 +106,7 @@ module.exports = {
                     .setImage(card.image)
                     .setColor('#55AD9B');
 
-                await interaction.followUp({ embeds: [successEmbed] });
+                await interaction.editReply({ embeds: [successEmbed] });
 
                 const recipientEmbed = new EmbedBuilder()
                     .setTitle(`${interaction.user.tag} Gifted You A Card!`)
@@ -108,7 +124,7 @@ module.exports = {
                 }
 
             } else if (i.customId === 'cancel_gift') {
-                await interaction.followUp({
+                await interaction.editReply({
                     content: 'Gift operation cancelled.',
                     ephemeral: true
                 });
@@ -122,7 +138,7 @@ module.exports = {
 
         collector.on('end', collected => {
             if (collected.size === 0) {
-                interaction.followUp({
+                interaction.editReply({
                     content: 'You took too long to respond. Gift operation cancelled.',
                     ephemeral: true
                 });

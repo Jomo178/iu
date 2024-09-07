@@ -21,7 +21,7 @@ module.exports = {
         const player = await userBase.findOne({ user: user.id })
 
         if (!player) {
-            return await interaction.followUp({ content: '\`❌\` Mentioned user not found.', ephemeral: true });
+            return await interaction.editReply({ content: '\`❌\` Mentioned user not found.', ephemeral: true });
         }
         
 
@@ -34,7 +34,7 @@ module.exports = {
       
         
   
-      await interaction.followUp({ embeds: [embed] })
+      await interaction.editReply({ embeds: [embed] })
 
   }
 }

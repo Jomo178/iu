@@ -17,18 +17,18 @@ module.exports = {
         const amount = interaction.options.getNumber('amount');
 
         if (amount <= 0 || !Number.isInteger(amount)) {
-            return await interaction.followUp({ content: ' \`❌\` The amount is not a positive & non decimal integer.', ephemeral: true });
+            return await interaction.editReply({ content: ' \`❌\` The amount is not a positive & non decimal integer.', ephemeral: true });
         }
 
             const giverData = await userBase.findOne({ user: interaction.user.id });
             const receiverData = await userBase.findOne({ user: targetUser.id });
 
             if (!receiverData) {
-                return await interaction.followUp({ content: '\`❌\` User mentioned not found.', ephemeral: true });
+                return await interaction.editReply({ content: '\`❌\` User mentioned not found.', ephemeral: true });
             }
 
             if (giverData[currency] < amount) {
-                return await interaction.followUp({ content: '\`❌\` Insufficient balance.', ephemeral: true });
+                return await interaction.editReply({ content: '\`❌\` Insufficient balance.', ephemeral: true });
             }
 
             giverData[currency] -= amount;
@@ -43,6 +43,6 @@ module.exports = {
                 .setColor('#FFCF81')
                 .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
 
-            await interaction.followUp({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
         } 
     }

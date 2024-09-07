@@ -6,7 +6,6 @@ module.exports = {
     name: 'favorite',
     category: 'profile',
     description: 'Choose your favorite card',
-    deferBypass: true,
     options: [
         { name: 'code', type: 3, description: 'Card code you want to favorite', required: true }
     ],
@@ -21,11 +20,11 @@ module.exports = {
         const card = await cardBase.findOne({ code: cardCode });
 
         if (!card) {
-            return await interaction.reply({ content: `❌ \`${cardCode}\` does not exist.`, ephemeral: true });
+            return await interaction.editReply({ content: `❌ \`${cardCode}\` does not exist.`, ephemeral: true });
         }
 
         if (card.owner !== interaction.user.id) {
-            return await interaction.reply({ content: `❌ \`${cardCode}\` does not belong to you! Try again with a card you own.`, ephemeral: true });
+            return await interaction.editReply({ content: `❌ \`${cardCode}\` does not belong to you! Try again with a card you own.`, ephemeral: true });
         }
 
         await userBase.findOneAndUpdate(
@@ -33,6 +32,6 @@ module.exports = {
             { favCard: cardCode, favCardImage: card.image }
         );
 
-        await interaction.reply({ content: `✅ Your favorite card has now been set to \`${cardCode}\`.` });
+        await interaction.editReply({ content: `✅ Your favorite card has now been set to \`${cardCode}\`.` });
     }
 }
