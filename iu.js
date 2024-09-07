@@ -3,7 +3,7 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const config = require("./config.json");
 
-mongoose.connect(`mongodb://lapisDevs:LAPISISCOOL@149.28.192.107:27017`, {
+mongoose.connect(config.database, {
     dbName: "IU",
 });
 
