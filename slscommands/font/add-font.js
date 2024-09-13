@@ -18,7 +18,14 @@ module.exports = {
      */
     run: async (client, interaction) => {
         const cardId = interaction.options.getString('code');
-        const fontName = interaction.options.getString('fontname');
+        let fontName = interaction.options.getString('fontname');
+
+        // Capitalize the font name
+        fontName = fontName
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
 
         const user = await userBase.findOne({ user: interaction.user.id });
         if (!user) return await interaction.editReply({ content: 'User not found.', ephemeral: true });

@@ -21,7 +21,7 @@ module.exports = {
    */
   run: async (client, interaction, args) => {
 
-    let verify = await verifyCD(client, interaction, "drop", 1800000); 
+    let verify = await verifyCD(client, interaction, "drop", 900000); 
     if (verify) return;
 
     let cards = await drawRandomCards(3);

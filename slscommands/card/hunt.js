@@ -20,7 +20,7 @@ module.exports = {
    * @param {String[]} args
    */
   run: async (client, interaction, args) => {
-    let verify = await verifyCD(client, interaction, "hunt", 3600000); 
+    let verify = await verifyCD(client, interaction, "hunt", 1800000); 
     if (verify) return;
 
     let cards = await drawRandomCards(2);

@@ -29,12 +29,7 @@ module.exports = async (client, interaction) => {
 
         // Command Usage Tracking
         await trackCommandUsage(interaction);
-
-        // Guild-Specific Interaction
-        if (interaction.guild.id !== '1265686888782626949') {
-            return await handleGuildInteraction(interaction);
-        }
-
+        
         // User Info Handling
         await handleUserInfo(interaction);
 
@@ -60,36 +55,27 @@ async function trackCommandUsage(interaction) {
         command: interaction.commandName
     });
 
+    const currentTime = Date.now();
+
     if (commandUsage) {
         commandUsage.usageCount += 1;
-        commandUsage.date = Date.now();
+        commandUsage.lastUsed = currentTime; // Store last used time
+        if (!commandUsage.usageHistory) {
+            commandUsage.usageHistory = []; // Create array if it doesn't exist
+        }
+        commandUsage.usageHistory.push(currentTime); // Add current time to history
     } else {
         commandUsage = new CommandUsage({
             user: interaction.user.id,
             server: interaction.guild.id,
             command: interaction.commandName,
             usageCount: 1,
-            date: Date.now()
+            lastUsed: currentTime, // Store last used time
+            usageHistory: [currentTime] // Initialize usage history array
         });
     }
 
     await commandUsage.save();
-}
-
-// Function to handle guild-specific interactions
-async function handleGuildInteraction(interaction) {
-    const joinButton = new ButtonBuilder()
-        .setLabel('Join the Uaenaverse Community Server')
-        .setStyle(ButtonStyle.Link)
-        .setURL('https://discord.gg/aQkUGvZmSu');
-
-    const row = new ActionRowBuilder().addComponents(joinButton);
-
-    await interaction.editReply({
-        content: 'The Bot will be released to the public after the Beta Testing! Want to be the first ones to try it? Join the server.',
-        components: [row],
-        ephemeral: true
-    });
 }
 
 // Function to handle user information
