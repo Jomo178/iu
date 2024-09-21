@@ -35,7 +35,7 @@ module.exports = {
         }).join('\n');
 
         let embed = new EmbedBuilder()
-            .setColor('#FFCF81')
+            .setColor('#2b2d31')
             .setAuthor({ name: `Font Inventory`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
             .setDescription(fontDescriptions || 'No fonts found in inventory.')
             .setTimestamp();

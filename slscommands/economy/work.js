@@ -29,7 +29,7 @@ module.exports = {
 
         const job_done = Math.floor(Math.random() * job.length);
         const company_done = Math.floor(Math.random() * company.length);
-        const amount = Math.floor(Math.random() * 50) + 1;
+        const amount = Math.floor(Math.random() * 10) + 1;
 
         await userBase.findOneAndUpdate(
             { user: user.id }, 

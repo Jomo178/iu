@@ -39,7 +39,7 @@ module.exports = {
 
     // Determine if the user should receive a new font
     let fontReward = null;
-    if (streak.newStreak % 3 === 0) {
+    if (streak.newStreak % 2 === 0) {
       fontReward = await giveRandomFont(user);
     }
 

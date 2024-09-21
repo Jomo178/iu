@@ -22,7 +22,7 @@ module.exports = {
       const userId = interaction.user.id;
 
       const embed = new EmbedBuilder()
-        .setColor(`#F8EDE3`)
+        .setColor(`#2b2d31`)
         .setAuthor({ name: interaction.user.tag || 'Cooldowns', iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
         .setAuthor({
           name: `${interaction.user.username}'s Cooldowns`,

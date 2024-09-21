@@ -73,27 +73,27 @@ module.exports = {
 
     ctx.fillStyle = 'white'; 
     ctx.strokeStyle = 'black';
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
 
     console.log(`Using font: ${fontFamily || 'default'}, Default font size: ${defaultFontSize}, Smaller font size: ${smallerFontSize}, Act font size: ${actFontSize}`);
 
     // Draw card name
     if (cardName.length > 7) {
       ctx.font = `${smallerFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardName, 84, 731); 
-      ctx.fillText(cardName, 84, 731); 
+      ctx.strokeText(cardName, 84, 726); 
+      ctx.fillText(cardName, 84, 726); 
 
       ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardAct, 84, 731 - (smallerFontSize - actYOffset));
-      ctx.fillText(cardAct, 84, 731 - (smallerFontSize - actYOffset)); 
+      ctx.strokeText(cardAct, 84, 724 - (smallerFontSize - actYOffset));
+      ctx.fillText(cardAct, 84, 724 - (smallerFontSize - actYOffset)); 
     } else {
       ctx.font = `${defaultFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardName, 84, 731);
-      ctx.fillText(cardName, 84, 731); 
+      ctx.strokeText(cardName, 84, 726);
+      ctx.fillText(cardName, 84, 726); 
 
       ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-      ctx.strokeText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
-      ctx.fillText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
+      ctx.strokeText(cardAct, 84, 724 - (defaultFontSize - actYOffset)); 
+      ctx.fillText(cardAct, 84, 724 - (defaultFontSize - actYOffset)); 
     }
 
     const attachment = new AttachmentBuilder()
