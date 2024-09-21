@@ -38,14 +38,14 @@ module.exports = {
     let embedOptions = {
       author: { name: user.tag || 'Profile', iconURL: user.displayAvatarURL({ dynamic: true }) },
       description,
-      color: parseInt('#eea990', 16)  // Convert hex color to integer
+      color: parseInt('2b2d31', 16)  
     };
 
     if (favCard) {
       const lookup = await cardBase.findOne({ code: favCard });
       if (lookup) {
         const { name: cardName, act: cardAct, font: fontFamily } = lookup;
-        description += `\`🎴\` **Favorite Card** : ${favCard}\n`;
+        description += `\`🎴\` **Favorite Card** : \`${lookup.code}\` **${lookup.name}** - ${lookup.group}\n`;
 
         const canvas = Canvas.createCanvas(600, 800);
         const ctx = canvas.getContext('2d');
@@ -78,22 +78,22 @@ module.exports = {
 
         if (cardName.length > 7) {
           ctx.font = `${smallerFontSize}px "${fontFamily || 'default'}"`;
-          ctx.strokeText(cardName, 84, 731); 
-          ctx.fillText(cardName, 84, 731); 
-
+          ctx.strokeText(cardName, 84, 726); 
+          ctx.fillText(cardName, 84, 726); 
+    
           ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-          ctx.strokeText(cardAct, 84, 731 - (smallerFontSize - actYOffset));
-          ctx.fillText(cardAct, 84, 731 - (smallerFontSize - actYOffset)); 
+          ctx.strokeText(cardAct, 84, 724 - (smallerFontSize - actYOffset));
+          ctx.fillText(cardAct, 84, 724 - (smallerFontSize - actYOffset)); 
         } else {
           ctx.font = `${defaultFontSize}px "${fontFamily || 'default'}"`;
-          ctx.strokeText(cardName, 84, 731);
-          ctx.fillText(cardName, 84, 731); 
-
+          ctx.strokeText(cardName, 84, 726);
+          ctx.fillText(cardName, 84, 726); 
+    
           ctx.font = `${actFontSize}px "${fontFamily || 'default'}"`;
-          ctx.strokeText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
-          ctx.fillText(cardAct, 84, 731 - (defaultFontSize - actYOffset)); 
+          ctx.strokeText(cardAct, 84, 724 - (defaultFontSize - actYOffset)); 
+          ctx.fillText(cardAct, 84, 724 - (defaultFontSize - actYOffset)); 
         }
-
+    
         const attachment = new AttachmentBuilder()
           .setFile(await canvas.encode('webp'))
           .setName('favCard.webp');
@@ -109,7 +109,7 @@ module.exports = {
           files: [attachment],
         });
       } else {
-        description += `\`🎴\` **Favorite Card** : ${favCard}\n`;
+        description += `\`🎴\` **Favorite Card** : ${favCard} **${favCard.name}** - ${favCard.group}\n`;
         embedOptions.description = description; // Update the description
         await interaction.editReply({
           embeds: [new EmbedBuilder(embedOptions)],

@@ -7,7 +7,13 @@ module.exports = {
   name: "inventory-cards",
   description: "View the cards in your inventory",
   category: 'economy',
-  options: [{ type: 6, name: "user", description: "Whose inventory do you want to view?" }],
+  options: [
+    { type: 6, name: "user", description: "Whose inventory do you want to view?" },
+    { type: 3, name: "name", description: "Filter by card name", required: false },
+    { type: 3, name: "act", description: "Filter by act (era)", required: false },
+    { type: 3, name: "group", description: "Filter by card group", required: false },
+    { type: 4, name: "issue", description: "Filter by issue number", required: false },
+  ],
   /**
    *
    * @param {Client} client
@@ -15,13 +21,25 @@ module.exports = {
    */
   run: async (client, interaction) => {
     const player = interaction.options.getUser("user") || interaction.user;
+    const nameFilter = interaction.options.getString("name");
+    const actFilter = interaction.options.getString("act");
+    const groupFilter = interaction.options.getString("group");
+    const issueFilter = interaction.options.getInteger("issue");
+
     const userexists = await userBase.findOne({ user: player.id });
 
     if (!userexists) {
-        return interaction.editReply({ content: '`❌` The mentioned user does not exist!', ephemeral: true });
+      return interaction.editReply({ content: '`❌` The mentioned user does not exist!', ephemeral: true });
     }
 
-    let allCards = await cardBase.find({ owner: player.id }).sort({ date: -1 }).exec();
+    // Building the query with optional filters
+    const query = { owner: player.id };
+    if (nameFilter) query.name = { $regex: new RegExp(nameFilter, "i") };
+    if (actFilter) query.act = { $regex: new RegExp(actFilter, "i") };
+    if (groupFilter) query.group = { $regex: new RegExp(groupFilter, "i") };
+    if (issueFilter != null) query.issue = issueFilter;
+
+    let allCards = await cardBase.find(query).sort({ date: -1 }).exec();
 
     if (allCards.length === 0) {
       return interaction.editReply({
@@ -30,7 +48,6 @@ module.exports = {
       });
     }
 
-  
     const itemsPerPage = 10;
     let currentPage = 0;
     const totalPages = Math.ceil(allCards.length / itemsPerPage);
@@ -49,7 +66,7 @@ module.exports = {
           iconURL: player.displayAvatarURL({ dynamic: true }),
         })
         .setDescription(cardDetails)
-        .setColor("#AD88C6")
+        .setColor("#2b2d31")
         .setFooter({ text: `Page ${page + 1} / ${totalPages} | Total Cards: ${allCards.length}` });
     };
 
@@ -85,7 +102,7 @@ module.exports = {
 
     collector.on("collect", async (i) => {
       if (i.user.id !== player.id) {
-        return i.reply({ content: "You can't control this inventory.", ephemeral: true });
+        return i.update({ content: "You can't control this inventory.", ephemeral: true });
       }
 
       if (i.customId === "next") {

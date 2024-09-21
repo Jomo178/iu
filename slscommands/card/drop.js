@@ -21,12 +21,12 @@ module.exports = {
    */
   run: async (client, interaction, args) => {
 
-    let verify = await verifyCD(client, interaction, "drop", 1800000); 
+    let verify = await verifyCD(client, interaction, "drop", 900000); 
     if (verify) return;
 
     let cards = await drawRandomCards(3);
 
-    const canvas = Canvas.createCanvas(1800, 800); 
+    const canvas = Canvas.createCanvas(1800, 800);
     const ctx = canvas.getContext('2d');
     
     let c1 = await Canvas.loadImage(cards[0].image);
@@ -41,7 +41,6 @@ module.exports = {
     const fontFamily = 'Fjalla One';
 
     ctx.font = `24px "${fontFamily}"`;
-    ctx.fillStyle = '#ffffff'; 
 
     const buttons = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId('card1').setLabel('1').setStyle(ButtonStyle.Primary),
@@ -100,36 +99,35 @@ module.exports = {
       const hi = Canvas.createCanvas(600, 800);
       const ctxHi = hi.getContext('2d');
 
-      let selectedCardImage = await Canvas.loadImage(selectedCard.image);
-      ctxHi.drawImage(selectedCardImage, 0, 0, hi.width, hi.height);
-
       const defaultFontSize = 75;
       const smallerFontSize = 60;
       const actFontSize = 30;
-  
-      ctxHi.strokeStyle = 'black'; 
-      ctxHi.lineWidth = 6; 
-  
-      if (selectedCard.name.length > 7) {
-        ctxHi.font = `${smallerFontSize}px "${fontFamily}"`; 
-        ctxHi.fillStyle = 'white'; 
-        ctxHi.strokeText(selectedCard.name, 80, 735); 
-        ctxHi.fillText(selectedCard.name, 80, 735);
-        
-        ctxHi.font = `${actFontSize}px "${fontFamily}"`;
-        ctxHi.strokeText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize)); 
-        ctxHi.fillText(selectedCard.act, 80, 660 + (defaultFontSize - smallerFontSize)); 
-      } else {
-        ctxHi.font = `${defaultFontSize}px "${fontFamily}"`; 
-        ctxHi.fillStyle = 'white'; 
-        ctxHi.strokeText(selectedCard.name, 80, 735); 
-        ctxHi.fillText(selectedCard.name, 80, 735); 
-
-        ctxHi.font = `${actFontSize}px "${fontFamily}"`; 
-        ctxHi.strokeText(selectedCard.act, 80, 660); 
-        ctxHi.fillText(selectedCard.act, 80, 660);     
-      }
       
+      ctxHi.fillStyle = 'white'; 
+      ctxHi.strokeStyle = 'black';
+      ctxHi.lineWidth = 5;
+  
+      let selectedCardImage = await Canvas.loadImage(selectedCard.image);
+      ctxHi.drawImage(selectedCardImage, 0, 0, hi.width, hi.height);
+
+      if (selectedCard.name.length > 7) {
+        ctxHi.font = `${smallerFontSize}px "${fontFamily}"`;
+        ctxHi.strokeText(selectedCard.name, 84, 726);
+        ctxHi.fillText(selectedCard.name, 84, 726);
+      
+        ctxHi.font = `${actFontSize}px "${fontFamily}"`;
+        ctxHi.strokeText(selectedCard.act, 84, 724 - smallerFontSize);
+        ctxHi.fillText(selectedCard.act, 84, 724 - smallerFontSize);
+      } else {
+        ctxHi.font = `${defaultFontSize}px "${fontFamily}"`;
+        ctxHi.strokeText(selectedCard.name, 84, 726);
+        ctxHi.fillText(selectedCard.name, 84, 726);
+      
+        ctxHi.font = `${actFontSize}px "${fontFamily}"`;
+        ctxHi.strokeText(selectedCard.act, 84, 724 - defaultFontSize);
+        ctxHi.fillText(selectedCard.act, 84, 724 - defaultFontSize);
+      }
+                  
       const attachmentHi = new AttachmentBuilder()
           .setFile(await hi.encode('png')) 
           .setName('hi.png');

@@ -29,12 +29,7 @@ module.exports = async (client, interaction) => {
 
         // Command Usage Tracking
         await trackCommandUsage(interaction);
-
-        // Guild-Specific Interaction
-        if (interaction.guild.id !== '1265686888782626949') {
-            return await handleGuildInteraction(interaction);
-        }
-
+        
         // User Info Handling
         await handleUserInfo(interaction);
 
@@ -54,42 +49,49 @@ module.exports = async (client, interaction) => {
 
 // Function to track command usage
 async function trackCommandUsage(interaction) {
-    let commandUsage = await CommandUsage.findOne({
-        user: interaction.user.id,
-        server: interaction.guild.id,
-        command: interaction.commandName
-    });
+    try {
+        // Check if interaction, user, guild, and command are valid
+        if (!interaction || !interaction.user || !interaction.guild || !interaction.commandName) {
+            console.error("Invalid interaction data: user, guild, or command is missing");
+            return; // Exit the function if any required properties are missing
+        }
 
-    if (commandUsage) {
-        commandUsage.usageCount += 1;
-        commandUsage.date = Date.now();
-    } else {
-        commandUsage = new CommandUsage({
+        // Find command usage based on user, guild, and command
+        let commandUsage = await CommandUsage.findOne({
             user: interaction.user.id,
             server: interaction.guild.id,
-            command: interaction.commandName,
-            usageCount: 1,
-            date: Date.now()
+            command: interaction.commandName
         });
+
+        const currentTime = Date.now();
+
+        if (commandUsage) {
+            // Update usage count, last used time, and history
+            commandUsage.usageCount += 1;
+            commandUsage.lastUsed = currentTime;
+            if (!commandUsage.usageHistory) {
+                commandUsage.usageHistory = []; // Initialize history array if missing
+            }
+            commandUsage.usageHistory.push(currentTime); // Log the current usage time
+        } else {
+            // Create a new entry if this is the first time the command is used
+            commandUsage = new CommandUsage({
+                user: interaction.user.id,
+                server: interaction.guild.id,
+                command: interaction.commandName,
+                usageCount: 1,
+                lastUsed: currentTime,
+                usageHistory: [currentTime] // Initialize usage history
+            });
+        }
+
+        // Save the command usage data
+        await commandUsage.save();
+
+    } catch (error) {
+        // Catch any errors and log them
+        console.error("Error tracking command usage:", error);
     }
-
-    await commandUsage.save();
-}
-
-// Function to handle guild-specific interactions
-async function handleGuildInteraction(interaction) {
-    const joinButton = new ButtonBuilder()
-        .setLabel('Join the Uaenaverse Community Server')
-        .setStyle(ButtonStyle.Link)
-        .setURL('https://discord.gg/aQkUGvZmSu');
-
-    const row = new ActionRowBuilder().addComponents(joinButton);
-
-    await interaction.editReply({
-        content: 'The Bot will be released to the public after the Beta Testing! Want to be the first ones to try it? Join the server.',
-        components: [row],
-        ephemeral: true
-    });
 }
 
 // Function to handle user information

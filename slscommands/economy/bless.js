@@ -19,7 +19,7 @@ module.exports = {
 
         const user = interaction.user;
         const mentioned = interaction.options.getUser('user');
-        const amount = Math.floor(Math.random() * 40) + 1
+        const amount = Math.floor(Math.random() * 10) + 1
 
 
         if (mentioned.id === user.id) {
@@ -34,7 +34,7 @@ module.exports = {
             return await interaction.editReply({ content: '\`❌\` User mentioned not found.', ephemeral: true });
         }
 
-        let verify = await verifyCD(client, interaction, "bless", 2700000); 
+        let verify = await verifyCD(client, interaction, "bless", 1800000); 
         if (verify) return;
 
         firstUser.balance += amount;

@@ -68,7 +68,7 @@ module.exports = {
         const confirmationEmbed = new EmbedBuilder()
             .setAuthor({ name: `${interaction.user.tag} — Confirm Gift`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
             .setDescription(`Are you sure you want to gift \`${card.code}\` **${card.name}** \`${getRarity(card.rarity)}\` to <@${recipient.id}>?`)
-            .setColor('#55AD9B')
+            .setColor('#2b2d31')
             .setFooter({
                 text: 'Click a button to confirm or cancel',
                 iconURL: client.user.displayAvatarURL({ dynamic: true })
